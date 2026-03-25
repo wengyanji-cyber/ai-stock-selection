@@ -278,7 +278,7 @@ export async function registerMarketRoutes(app: FastifyInstance) {
       }
     }
 
-    const userId = Number(session.user.id)
+    const userId = session.user.id
     console.log('[Watchlist] User ID:', userId, 'session:', typeof session.user)
     // 检查自选数量限制
     const currentWatchlist = await getWatchlistItems(userId)

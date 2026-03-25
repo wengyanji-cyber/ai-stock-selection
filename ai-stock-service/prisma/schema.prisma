@@ -217,3 +217,23 @@ model JobRun {
   @@index([jobCode, createdAt])
   @@index([queueName, status])
 }
+
+model PaymentOrder {
+  id            BigInt   @id @default(autoincrement())
+  orderNo       String   @unique @db.VarChar(64)
+  userId        BigInt   @db.BigInt
+  userCode      String   @db.VarChar(64)
+  planCode      String   @db.VarChar(32)
+  planName      String   @db.VarChar(64)
+  amount        Decimal  @db.Decimal(10, 2)
+  paymentMethod String   @default("wechat") @db.VarChar(32)
+  status        String   @default("PENDING") @db.VarChar(32)
+  transactionId String?  @db.VarChar(128)
+  paidAt        DateTime?
+  expiresAt     DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([userCode, createdAt])
+  @@index([orderNo])
+}
