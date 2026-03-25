@@ -163,6 +163,78 @@ export async function registerMarketRoutes(app: FastifyInstance) {
     }
   })
 
+  // 数据导出 API
+  app.get('/api/v1/export/data', async (request, reply) => {
+    const { requireAuthSession } = await import('../auth/auth.service.js')
+    const { checkFeatureAccess } = await import('../../lib/middleware.js')
+    
+    const session = await requireAuthSession(request).catch(() => null)
+    if (!session) {
+      reply.code(401)
+      return {
+        data: null,
+        error: '请先登录',
+      }
+    }
+
+    // 检查数据导出权限（OBSERVER 及以上）
+    const accessCheck = await checkFeatureAccess(request, 'dataExport', session)
+    if (!accessCheck.allowed) {
+      return {
+        data: null,
+        error: accessCheck.message,
+        upgradeHint: accessCheck.upgradeHint,
+        meta: { source: 'mysql', version: 'v1' },
+      }
+    }
+
+    // TODO: 实现数据导出逻辑
+    return {
+      data: {
+        message: '数据导出功能开发中',
+        exportUrl: '/api/v1/export/data.csv',
+      },
+      meta: { source: 'mysql', version: 'v1' },
+    }
+  })
+
+  // 策略回测 API
+  app.post('/api/v1/strategy/backtest', async (request, reply) => {
+    const { requireAuthSession } = await import('../auth/auth.service.js')
+    const { checkFeatureAccess } = await import('../../lib/middleware.js')
+    
+    const session = await requireAuthSession(request).catch(() => null)
+    if (!session) {
+      reply.code(401)
+      return {
+        data: null,
+        error: '请先登录',
+      }
+    }
+
+    // 检查策略回测权限（STANDARD 及以上）
+    const accessCheck = await checkFeatureAccess(request, 'strategyBacktest', session)
+    if (!accessCheck.allowed) {
+      return {
+        data: null,
+        error: accessCheck.message,
+        upgradeHint: accessCheck.upgradeHint,
+        meta: { source: 'mysql', version: 'v1' },
+      }
+    }
+
+    const body = request.body as Record<string, unknown>
+    
+    // TODO: 实现策略回测逻辑
+    return {
+      data: {
+        message: '策略回测功能开发中',
+        params: body,
+      },
+      meta: { source: 'mysql', version: 'v1' },
+    }
+  })
+
   app.post('/api/v1/auth/trial-login', async (request) => {
     const body = request.body as Record<string, unknown>
 
