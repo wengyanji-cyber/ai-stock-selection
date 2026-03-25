@@ -144,8 +144,18 @@ export async function registerPaymentRoutes(app: FastifyInstance) {
       const body = request.body as Record<string, unknown>
       console.log('[Payment] Wechat notify:', JSON.stringify(body))
 
-      // TODO: 验证微信支付签名
-      // TODO: 处理支付成功逻辑
+      // 使用真实微信支付 API 验证签名
+      const { handleWechatNotify } = await import('../../lib/wechat-pay.js')
+      const notifyResult = await handleWechatNotify(body)
+      
+      if (!notifyResult.success) {
+        console.error('[Payment] Notify verification failed')
+        reply.code(500)
+        return {
+          code: 'FAIL',
+          message: '签名验证失败',
+        }
+      }
 
       // 示例：更新订单状态
       const orderNo = typeof body.out_trade_no === 'string' ? body.out_trade_no : ''
@@ -275,19 +285,13 @@ function generateOrderNo(): string {
 }
 
 /**
- * 创建微信支付参数（模拟）
- * TODO: 接入真实微信支付 API
+ * 创建微信支付参数
  */
 async function createWechatPayParams(orderNo: string, amount: number) {
-  // 模拟返回
-  return {
-    appId: 'wx1234567890',
-    timeStamp: Math.floor(Date.now() / 1000).toString(),
-    nonceStr: Math.random().toString(36).slice(2, 16),
-    package: `prepay_id=${orderNo}`,
-    signType: 'RSA',
-    paySign: 'mock_signature',
-  }
+  const { createWechatPayOrder } = await import('../../lib/wechat-pay.js')
+  
+  // 调用真实微信支付 API
+  return await createWechatPayOrder(orderNo, amount, 'AI 选股会员套餐')
 }
 
 /**
