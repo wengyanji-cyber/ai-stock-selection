@@ -9,13 +9,13 @@ function MarketOverviewPage() {
     <div className="page-stack">
       <PageHero
         eyebrow="市场首页"
-        title="把热点、候选、点位和风险，压缩成用户能直接使用的首页。"
+        title="今天市场看什么？一目了然"
         description={data.marketSummary}
         tags={data.marketTags}
         metrics={[
           { value: data.marketTemperature, label: '市场温度' },
-          { value: `${data.sectors.length} 个`, label: '重点板块' },
-          { value: `${data.focusCandidateCount} 只`, label: '重点候选' },
+          { value: `${data.sectors.length} 个`, label: '热点板块' },
+          { value: `${data.focusCandidateCount} 只`, label: '精选个股' },
         ]}
       />
 
@@ -35,14 +35,14 @@ function MarketOverviewPage() {
           </div>
         </ContentPanel>
 
-        <ContentPanel kicker="首页信息结构">
+        <ContentPanel kicker="💡 使用建议">
           <ol className="route-list">
-            <li>先告诉用户今天市场看什么，不先丢一堆复杂数据。</li>
-            <li>重点板块只保留 2 到 3 个，控制信息负荷。</li>
-            <li>下一步自然引导用户进入候选池和诊股页。</li>
+            <li>📊 先看市场温度，了解整体行情冷暖。</li>
+            <li>🎯 关注热点板块，找到主线方向。</li>
+            <li>🔍 进入候选池和诊股页，深入分析个股。</li>
           </ol>
-          <div className="note-card">当前数据源：{source === 'api' ? '后端接口' : '本地 mock 回退'}。</div>
-          {error ? <div className="note-card error-card">市场首页接口异常：{error}</div> : null}
+          <div className="note-card">💡 数据源：{source === 'api' ? '实时行情' : '本地缓存（网络异常时自动切换）'}</div>
+          {error ? <div className="note-card error-card">加载市场数据失败，请刷新页面重试。</div> : null}
         </ContentPanel>
       </section>
     </div>

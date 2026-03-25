@@ -28,7 +28,8 @@ function DiagnosisPage() {
       <section className="hero-panel slim-hero">
         <div className="hero-copy">
           <span className="eyebrow">个股诊断</span>
-          <h1>不是只给结论，而是同时给理由、风险和失效条件。</h1>
+          <h1>深度诊断，不止于结论</h1>
+          <p>每只股票都提供完整的分析逻辑、风险因素和失效条件，帮你做出独立判断。</p>
         </div>
       </section>
       <section className="content-grid diagnosis-layout">
@@ -38,8 +39,8 @@ function DiagnosisPage() {
             <span>搜索代码 / 名称 / 板块</span>
             <input value={keyword} onChange={(event) => setKeyword(event.target.value)} placeholder="例如：300001 / 机器人" />
           </label>
-          <div className="note-card">当前数据源：{source === 'api' ? '后端接口' : '本地 mock 回退'}。</div>
-          {error ? <div className="note-card error-card">诊股接口异常：{error}</div> : null}
+          <div className="note-card">💡 数据源：{source === 'api' ? '实时诊断' : '本地缓存（网络异常时自动切换）'}</div>
+          {error ? <div className="note-card error-card">加载诊断数据失败，请检查网络连接。</div> : null}
           <div className="stack-list compact-list">
             {diagnosisList.map((diagnosis) => (
               <button

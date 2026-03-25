@@ -33,8 +33,8 @@ function CandidatesPage() {
       <section className="hero-panel slim-hero">
         <div className="hero-copy">
           <span className="eyebrow">候选池</span>
-          <h1>保留少量高质量候选，而不是把用户淹没在噪音里。</h1>
-          <p>先用板块和优先级把信息压缩，再让用户进入个股层面的判断与风险识别。</p>
+          <h1>精选少量高质量候选，拒绝信息过载</h1>
+          <p>通过板块热度和优先级筛选，帮你快速找到值得关注的股票，再做深入分析。</p>
         </div>
       </section>
       <section className="panel-card filter-panel">
@@ -65,8 +65,8 @@ function CandidatesPage() {
             <span>当前候选数</span>
           </div>
         </div>
-        <div className="note-card">当前数据源：{source === 'api' ? '后端接口' : '本地 mock 回退'}。</div>
-        {error ? <div className="note-card error-card">候选池接口异常：{error}</div> : null}
+        <div className="note-card">💡 数据源：{source === 'api' ? '实时行情' : '本地缓存（网络异常时自动切换）'}</div>
+        {error ? <div className="note-card error-card">加载候选池失败，请刷新页面重试。</div> : null}
       </section>
       <section className="stack-list">
         {filteredCandidates.map((candidate) => (

@@ -9,7 +9,7 @@ function ReviewPage() {
     <div className="page-stack">
       <PageHero
         eyebrow="盘后复盘"
-        title="复盘不是流水账，而是总结今天什么有效、明天优先看什么。"
+        title="今天表现如何？明日重点关注什么？"
         description={data.summary}
         compact
       />
@@ -33,9 +33,9 @@ function ReviewPage() {
               <li key={risk}>{risk}</li>
             ))}
           </ul>
-          <div className="note-card">明日优先方向：{data.nextFocus}</div>
-          <div className="note-card">当前数据源：{source === 'api' ? '后端接口' : '本地 mock 回退'}。</div>
-          {error ? <div className="note-card error-card">复盘接口异常：{error}</div> : null}
+          <div className="note-card primary">🎯 明日优先方向：{data.nextFocus}</div>
+          <div className="note-card">💡 数据源：{source === 'api' ? '实时复盘' : '本地缓存'}</div>
+          {error ? <div className="note-card error-card">加载复盘数据失败，请稍后重试。</div> : null}
         </ContentPanel>
       </section>
     </div>
