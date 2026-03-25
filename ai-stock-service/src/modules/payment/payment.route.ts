@@ -138,6 +138,85 @@ export async function registerPaymentRoutes(app: FastifyInstance) {
     }
   })
 
+  // 支付宝支付页面跳转
+  app.get('/api/v1/payment/alipay/pay', async (request, reply) => {
+    const session = await requireAuthSession(request).catch(() => null)
+    if (!session) {
+      reply.code(401)
+      return {
+        data: null,
+        error: '请先登录',
+      }
+    }
+
+    const query = request.query as Record<string, unknown>
+    const orderNo = typeof query.orderNo === 'string' ? query.orderNo : ''
+
+    try {
+      const order = await prisma.paymentOrder.findUnique({ where: { orderNo } })
+      if (!order) {
+        reply.code(404)
+        return {
+          data: null,
+          error: '订单不存在',
+        }
+      }
+
+      const { createAlipayOrder } = await import('../../lib/alipay.js')
+      const payUrl = await createAlipayOrder(orderNo, Number(order.amount), order.planName)
+
+      reply.redirect(payUrl.payUrl)
+    } catch (error: any) {
+      console.error('[Alipay] Create pay url error:', error)
+      reply.code(500)
+      return {
+        data: null,
+        error: '创建支付链接失败',
+      }
+    }
+  })
+
+  // 支付宝支付回调
+  app.post('/api/v1/payment/alipay/notify', async (request, reply) => {
+    try {
+      const body = request.body as Record<string, any>
+      console.log('[Alipay] Notify:', JSON.stringify(body))
+
+      const { handleAlipayNotify } = await import('../../lib/alipay.js')
+      const notifyResult = await handleAlipayNotify(body)
+
+      if (!notifyResult.success) {
+        console.error('[Alipay] Notify verification failed')
+        reply.send('fail')
+        return
+      }
+
+      // 更新订单状态
+      const orderNo = body.out_trade_no
+      if (orderNo) {
+        const order = await prisma.paymentOrder.findUnique({ where: { orderNo } })
+        if (order) {
+          await prisma.paymentOrder.update({
+            where: { orderNo },
+            data: {
+              status: 'PAID',
+              paidAt: new Date(),
+              transactionId: body.trade_no,
+            },
+          })
+
+          // 更新用户会员套餐
+          await upgradeUserMembership(order.userCode, order.planCode)
+        }
+      }
+
+      reply.send('success')
+    } catch (error: any) {
+      console.error('[Alipay] Notify error:', error)
+      reply.send('fail')
+    }
+  })
+
   // 微信支付回调
   app.post('/api/v1/payment/wechat/notify', async (request, reply) => {
     try {
