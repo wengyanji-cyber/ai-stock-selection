@@ -253,6 +253,15 @@ export async function registerMarketRoutes(app: FastifyInstance) {
       }
     }
 
+    // 检查自选数量限制
+    const { enforceWatchlistLimit } = await import('../../lib/middleware.js')
+    const currentWatchlist = await getWatchlistItems(session.userId)
+    const limitEnforced = await enforceWatchlistLimit(request as any, currentWatchlist.length)
+    
+    if (!limitEnforced) {
+      return // 中间件已返回错误响应
+    }
+
     const body = request.body as Record<string, unknown>
 
     return {

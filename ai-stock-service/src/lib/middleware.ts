@@ -1,6 +1,4 @@
-import { FastifyInstance, FastifyRequest } from 'fastify'
-import { requireAuthSession } from '../auth/auth.service.js'
-import type { MembershipPlan } from '../../lib/membership.js'
+import { FastifyRequest, FastifyReply } from 'fastify'
 
 interface AuthSession {
   user: {
@@ -10,33 +8,67 @@ interface AuthSession {
   }
 }
 
-async function getSession(request: FastifyRequest) {
+interface LimitCheckResult {
+  allowed: boolean
+  limit: number
+  current: number
+  remaining?: number
+  message: string
+  upgradeHint?: string | null
+}
+
+interface FeatureCheckResult {
+  allowed: boolean
+  message: string
+  upgradeHint?: string | null
+}
+
+export const MEMBERSHIP_LIMITS = {
+  TRIAL: { dailyCandidates: 3, watchlistLimit: 10, diagnosisDepth: 'basic' as const },
+  OBSERVER: { dailyCandidates: 5, watchlistLimit: 50, diagnosisDepth: 'standard' as const },
+  STANDARD: { dailyCandidates: 10, watchlistLimit: 200, diagnosisDepth: 'deep' as const },
+  ADVANCED: { dailyCandidates: 9999, watchlistLimit: 9999, diagnosisDepth: 'deep' as const },
+}
+
+export const FEATURE_ACCESS = {
+  TRIAL: [],
+  OBSERVER: ['data_export'],
+  STANDARD: ['deep_diagnosis', 'data_export', 'backtest', 'push'],
+  ADVANCED: ['deep_diagnosis', 'data_export', 'backtest', 'push', 'api_access'],
+}
+
+async function getSession(request: FastifyRequest): Promise<AuthSession | null> {
   try {
-    const session = await requireAuthSession(request)
+    const session = (request as any).session
+    if (!session?.user) return null
     return session as unknown as AuthSession
   } catch {
     return null
   }
 }
 
-export function buildCheckMembershipLimit(plan: string | null) {
-  const limits: Record<string, { dailyCandidates: number; watchlistLimit: number }> = {
-    TRIAL: { dailyCandidates: 3, watchlistLimit: 10 },
-    OBSERVER: { dailyCandidates: 5, watchlistLimit: 50 },
-    STANDARD: { dailyCandidates: 10, watchlistLimit: 200 },
-    ADVANCED: { dailyCandidates: 9999, watchlistLimit: 9999 },
-  }
-
-  return limits[plan || 'TRIAL'] || limits.TRIAL
+export function getMembershipLimits(plan: string | null) {
+  return MEMBERSHIP_LIMITS[plan as keyof typeof MEMBERSHIP_LIMITS] || MEMBERSHIP_LIMITS.TRIAL
 }
 
-export async function checkCandidateLimit(request: FastifyRequest, count: number) {
+export function hasFeatureAccess(plan: string | null, feature: string) {
+  const features = FEATURE_ACCESS[plan as keyof typeof FEATURE_ACCESS] || []
+  return features.includes(feature)
+}
+
+export async function checkCandidateLimit(request: FastifyRequest, count: number): Promise<LimitCheckResult> {
   const session = await getSession(request)
   if (!session) {
-    return { allowed: false, limit: 0, current: count, message: '请先登录' }
+    return {
+      allowed: false,
+      limit: 0,
+      current: count,
+      message: '请先登录',
+      upgradeHint: '登录后即可体验',
+    }
   }
 
-  const limits = buildCheckMembershipLimit(session.user.membershipPlan)
+  const limits = getMembershipLimits(session.user.membershipPlan)
   const allowed = count < limits.dailyCandidates
 
   return {
@@ -46,18 +78,24 @@ export async function checkCandidateLimit(request: FastifyRequest, count: number
     remaining: Math.max(0, limits.dailyCandidates - count),
     message: allowed
       ? `今日还可查看 ${limits.dailyCandidates - count} 只候选股票`
-      : `当前套餐每日仅可查看${limits.dailyCandidates}只，升级后可查看更多`,
+      : `当前套餐每日仅可查看${limits.dailyCandidates}只`,
     upgradeHint: !allowed && session.user.membershipPlan !== 'ADVANCED' ? '升级套餐解锁无限查看' : null,
   }
 }
 
-export async function checkWatchlistLimit(request: FastifyRequest, count: number) {
+export async function checkWatchlistLimit(request: FastifyRequest, count: number): Promise<LimitCheckResult> {
   const session = await getSession(request)
   if (!session) {
-    return { allowed: false, limit: 0, current: count, message: '请先登录' }
+    return {
+      allowed: false,
+      limit: 0,
+      current: count,
+      message: '请先登录',
+      upgradeHint: '登录后即可体验',
+    }
   }
 
-  const limits = buildCheckMembershipLimit(session.user.membershipPlan)
+  const limits = getMembershipLimits(session.user.membershipPlan)
   const allowed = count < limits.watchlistLimit
 
   return {
@@ -67,50 +105,103 @@ export async function checkWatchlistLimit(request: FastifyRequest, count: number
     remaining: Math.max(0, limits.watchlistLimit - count),
     message: allowed
       ? `还可添加 ${limits.watchlistLimit - count} 只自选股`
-      : `当前套餐最多添加${limits.watchlistLimit}只自选股，升级后可添加更多`,
+      : `当前套餐最多添加${limits.watchlistLimit}只自选股`,
     upgradeHint: !allowed && session.user.membershipPlan !== 'ADVANCED' ? '升级套餐解锁更多名额' : null,
   }
 }
 
-export async function checkFeatureAccess(request: FastifyRequest, feature: 'deep_diagnosis' | 'data_export' | 'backtest' | 'push') {
+export async function checkFeatureAccess(
+  request: FastifyRequest,
+  feature: 'deep_diagnosis' | 'data_export' | 'backtest' | 'push' | 'api_access'
+): Promise<FeatureCheckResult> {
   const session = await getSession(request)
   if (!session) {
-    return { allowed: false, message: '请先登录' }
+    return {
+      allowed: false,
+      message: '请先登录',
+      upgradeHint: '登录后即可体验',
+    }
   }
 
-  const featureMap: Record<string, string[]> = {
-    TRIAL: [],
-    OBSERVER: ['data_export'],
-    STANDARD: ['deep_diagnosis', 'data_export', 'backtest', 'push'],
-    ADVANCED: ['deep_diagnosis', 'data_export', 'backtest', 'push', 'api_access'],
-  }
-
-  const allowed = featureMap[session.user.membershipPlan || 'TRIAL']?.includes(feature)
+  const allowed = hasFeatureAccess(session.user.membershipPlan, feature)
 
   return {
     allowed,
-    message: allowed ? '功能可用' : `当前套餐不支持此功能，升级后可用`,
+    message: allowed ? '功能可用' : `当前套餐不支持此功能`,
     upgradeHint: !allowed && session.user.membershipPlan !== 'ADVANCED' ? '升级套餐解锁此功能' : null,
   }
 }
 
-export async function enforceSubscription(request: FastifyRequest, reply: any, requiredPlan: MembershipPlan[]) {
+export async function requireMembership(
+  request: FastifyRequest,
+  reply: FastifyReply,
+  requiredPlans: string[]
+): Promise<boolean> {
   const session = await getSession(request)
   
   if (!session) {
-    reply.code(401)
-    return { error: '请先登录', redirectTo: '/login' }
+    reply.code(401).send({
+      error: '请先登录',
+      code: 'UNAUTHORIZED',
+      redirectTo: '/login',
+    })
+    return false
   }
 
-  if (!requiredPlan.includes(session.user.membershipPlan as MembershipPlan)) {
-    reply.code(403)
-    return { 
+  if (!requiredPlans.includes(session.user.membershipPlan || '')) {
+    reply.code(403).send({
       error: '当前套餐不支持此功能',
+      code: 'FORBIDDEN',
       currentPlan: session.user.membershipPlan,
-      requiredPlans: requiredPlan,
-      upgradeTo: '/pricing'
-    }
+      requiredPlans,
+      upgradeTo: '/pricing',
+    })
+    return false
   }
 
-  return null
+  return true
+}
+
+export async function enforceCandidateLimit(
+  request: FastifyRequest,
+  reply: FastifyReply,
+  count: number
+): Promise<boolean> {
+  const result = await checkCandidateLimit(request, count)
+  
+  if (!result.allowed) {
+    reply.code(result.current === 0 ? 401 : 403).send({
+      error: result.message,
+      code: result.current === 0 ? 'UNAUTHORIZED' : 'LIMIT_EXCEEDED',
+      limit: result.limit,
+      current: result.current,
+      upgradeHint: result.upgradeHint,
+      upgradeTo: '/pricing',
+    })
+    return false
+  }
+  
+  return true
+}
+
+export async function enforceWatchlistLimit(
+  request: FastifyRequest,
+  reply: FastifyReply,
+  count: number
+): Promise<boolean> {
+  const result = await checkWatchlistLimit(request, count)
+  
+  if (!result.allowed) {
+    reply.code(result.current === 0 ? 401 : 403).send({
+      error: result.message,
+      code: result.current === 0 ? 'UNAUTHORIZED' : 'LIMIT_EXCEEDED',
+      limit: result.limit,
+      current: result.current,
+      upgradeHint: result.upgradeHint,
+      upgradeTo: '/pricing',
+    })
+    return false
+  }
+  
+  return true
 }
