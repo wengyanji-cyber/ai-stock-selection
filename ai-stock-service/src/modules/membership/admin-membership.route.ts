@@ -30,7 +30,10 @@ export async function registerAdminMembershipRoutes(app: FastifyInstance) {
       })
 
       return {
-        data: plans,
+        data: plans.map(p => ({
+          ...p,
+          id: Number(p.id),
+        })),
         meta: { source: 'mysql', version: 'v1' },
       }
     } catch (error: any) {
@@ -72,7 +75,10 @@ export async function registerAdminMembershipRoutes(app: FastifyInstance) {
       })
 
       return {
-        data: plan,
+        data: {
+          ...plan,
+          id: Number(plan.id),
+        },
         meta: { source: 'mysql', version: 'v1' },
       }
     } catch (error: any) {
@@ -116,7 +122,10 @@ export async function registerAdminMembershipRoutes(app: FastifyInstance) {
       })
 
       return {
-        data: plan,
+        data: {
+          ...plan,
+          id: Number(plan.id),
+        },
         meta: { source: 'mysql', version: 'v1' },
       }
     } catch (error: any) {
