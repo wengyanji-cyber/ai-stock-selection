@@ -1,74 +1,75 @@
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { useState } from 'react'
-import { changeUserPassword, logoutCurrentSession } from '../api/demoApi'
-import { useUserProfile } from '../hooks/useUserProfile'
 import { getCurrentUserCode } from '../utils/session'
+
+type MembershipStats = {
+  plan: string
+  planName: string
+  isTrial: boolean
+  trialDaysRemaining: number
+  expiresAt: string
+  features: {
+    dailyCandidates: number
+    watchlistLimit: number
+    diagnosisDepth: string
+    pushNotifications: boolean
+    dataExport: boolean
+    strategyBacktest: boolean
+    apiAccess: boolean
+    customerSupport: string
+  }
+}
+
+async function fetchMembershipStats() {
+  const token = localStorage.getItem('auth_token')
+  const res = await fetch('http://106.52.6.176:3010/api/v1/membership/stats', {
+    headers: {
+      'Authorization': `Bearer ${token || ''}`,
+    },
+  })
+  const json = await res.json()
+  return json.data as MembershipStats | null
+}
 
 function AccountPage() {
   const userCode = getCurrentUserCode()
-  const { profile, isLoading, source, error, refresh } = useUserProfile(userCode)
-  const [passwordForm, setPasswordForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' })
-  const [passwordState, setPasswordState] = useState<{ isSubmitting: boolean; error: string; success: string }>({
-    isSubmitting: false,
-    error: '',
-    success: '',
-  })
+  const [stats, setStats] = useState<MembershipStats | null>(null)
+  const [loading, setLoading] = useState(true)
 
-  async function handleChangePassword() {
-    if (!passwordForm.currentPassword || !passwordForm.newPassword) {
-      setPasswordState({ isSubmitting: false, error: '请完整填写当前密码和新密码', success: '' })
+  useEffect(() => {
+    if (!userCode) {
+      setLoading(false)
       return
     }
 
-    if (passwordForm.newPassword.length < 8) {
-      setPasswordState({ isSubmitting: false, error: '新密码至少 8 位', success: '' })
-      return
-    }
-
-    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      setPasswordState({ isSubmitting: false, error: '两次输入的新密码不一致', success: '' })
-      return
-    }
-
-    setPasswordState({ isSubmitting: true, error: '', success: '' })
-
-    try {
-      await changeUserPassword({
-        currentPassword: passwordForm.currentPassword,
-        newPassword: passwordForm.newPassword,
-      })
-      setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' })
-      setPasswordState({ isSubmitting: false, error: '', success: '✅ 密码已更新，下次登录请使用新密码。' })
-    } catch (submitError) {
-      if (submitError instanceof Error) {
-        if (submitError.message.includes('401')) {
-          setPasswordState({ isSubmitting: false, error: '当前密码错误，请检查后重试。', success: '' })
-        } else if (submitError.message.includes('400')) {
-          setPasswordState({ isSubmitting: false, error: '新密码不符合要求，请使用字母 + 数字组合。', success: '' })
-        } else {
-          setPasswordState({ isSubmitting: false, error: submitError.message, success: '' })
-        }
-      } else {
-        setPasswordState({ isSubmitting: false, error: '修改密码失败，请稍后重试。', success: '' })
-      }
-    }
-  }
+    fetchMembershipStats()
+      .then(setStats)
+      .catch(console.error)
+      .finally(() => setLoading(false))
+  }, [userCode])
 
   if (!userCode) {
     return (
       <div className="page-stack">
         <section className="panel-card">
           <div className="section-kicker">用户中心</div>
-          <h2>当前还没有登录用户。</h2>
-          <p>先登录已有试用用户，或者直接开通一个新的 14 天试用账号。</p>
+          <h2>当前还没有登录</h2>
+          <p>先登录或开通试用账号</p>
           <div className="action-row">
-            <Link className="primary-button" to="/login">
-              去登录
-            </Link>
-            <Link className="secondary-button" to="/trial">
-              去开通试用
-            </Link>
+            <Link className="primary-button" to="/login">去登录</Link>
+            <Link className="secondary-button" to="/trial">开通试用</Link>
           </div>
+        </section>
+      </div>
+    )
+  }
+
+  if (loading) {
+    return (
+      <div className="page-stack">
+        <section className="panel-card">
+          <div className="section-kicker">用户中心</div>
+          <p>⏳ 加载中...</p>
         </section>
       </div>
     )
@@ -79,89 +80,111 @@ function AccountPage() {
       <section className="hero-panel">
         <div className="hero-copy">
           <span className="eyebrow">用户中心</span>
-          <h1>把每天回来打开的理由，做成清晰的个人视图。</h1>
-          <p>用户中心聚焦试用进度、观察列表、最近诊股和下一步动作，是留存页，不是纯资料页。</p>
+          <h1>{stats?.planName || '用户中心'}</h1>
+          <p>管理你的订阅和账户设置</p>
         </div>
         <div className="metric-grid">
-          <div className="metric-card"><strong>{profile?.trialDaysRemaining ?? '--'} 天</strong><span>试用剩余</span></div>
-          <div className="metric-card"><strong>{profile?.watchlistCount ?? '--'} 只</strong><span>观察股票</span></div>
-          <div className="metric-card"><strong>{profile?.diagnosisCount ?? '--'} 次</strong><span>当前诊股快照</span></div>
+          <div className="metric-card">
+            <strong>{stats?.trialDaysRemaining ?? '--'}</strong>
+            <span>试用剩余天数</span>
+          </div>
+          <div className="metric-card">
+            <strong>{stats?.features.dailyCandidates ?? '--'}</strong>
+            <span>每日候选额度</span>
+          </div>
+          <div className="metric-card">
+            <strong>{stats?.features.watchlistLimit ?? '--'}</strong>
+            <span>自选股上限</span>
+          </div>
         </div>
       </section>
-      <div className="action-row">
-        <button className="secondary-button" type="button" onClick={() => void refresh()} disabled={isLoading}>
-          {isLoading ? '刷新中...' : '刷新用户中心'}
-        </button>
-        <button
-          className="secondary-button"
-          type="button"
-          onClick={() => {
-            void logoutCurrentSession().finally(() => {
-              window.location.href = '/login'
-            })
-          }}
-        >
-          退出当前账号
-        </button>
-      </div>
-      <div className="note-card">当前用户：{profile?.nickname || userCode}，数据源：{source === 'api' ? '后端接口' : '本地 mock 回退'}。</div>
-      {error ? <div className="note-card error-card">用户资料接口异常：{error}</div> : null}
+
       <section className="content-grid">
         <article className="panel-card">
-          <div className="section-kicker">下一步动作</div>
+          <div className="section-kicker">当前套餐</div>
+          <div className="info-card">
+            <div className="card-head">
+              <h2>{stats?.planName}</h2>
+              {stats?.isTrial && (
+                <span className="badge brand">试用中</span>
+              )}
+            </div>
+            <p>
+              {stats?.isTrial
+                ? `试用期至 ${stats?.expiresAt?.slice(0, 10) || '--'}`
+                : `订阅至 ${stats?.expiresAt?.slice(0, 10) || '--'}`}
+            </p>
+            <div className="action-row">
+              {stats?.isTrial && (
+                <Link className="primary-button" to="/pricing">
+                  升级套餐
+                </Link>
+              )}
+              <Link className="secondary-button" to="/pricing">
+                查看套餐
+              </Link>
+            </div>
+          </div>
+        </article>
+
+        <article className="panel-card">
+          <div className="section-kicker">套餐权益</div>
           <ul className="bullet-list">
-            {(profile?.nextActions || []).map((item) => (
-              <li key={item}>{item}</li>
-            ))}
+            <li>
+              📊 候选股票：{stats?.features.dailyCandidates || 0}只/天
+              {stats && stats.features.dailyCandidates < 10 && (
+                <span className="meta-text">（升级后可增加）</span>
+              )}
+            </li>
+            <li>
+              📝 自选数量：{stats?.features.watchlistLimit || 0}只
+            </li>
+            <li>
+              📈 诊断深度：{stats?.features.diagnosisDepth === 'deep' ? '深度' : stats?.features.diagnosisDepth === 'standard' ? '标准' : '基础'}
+            </li>
+            <li>
+              🔔 推送通知：{stats?.features.pushNotifications ? '✅ 支持' : '❌ 不支持'}
+            </li>
+            <li>
+              💾 数据导出：{stats?.features.dataExport ? '✅ 支持' : '❌ 不支持'}
+            </li>
+            <li>
+              🧪 策略回测：{stats?.features.strategyBacktest ? '✅ 支持' : '❌ 不支持'}
+            </li>
+            <li>
+              🎧 客服支持：{stats?.features.customerSupport === 'dedicated' ? '专属客服' : stats?.features.customerSupport === 'priority' ? '优先支持' : stats?.features.customerSupport === 'email' ? '邮件支持' : '无'}
+            </li>
           </ul>
         </article>
+
         <article className="panel-card">
-          <div className="section-kicker">最近活动</div>
-          <div className="note-card">
-            {profile?.recentActivities.length ? profile.recentActivities.join('；') : '最近 7 天最常使用的模块是个股诊断，其次是候选池。'}
-          </div>
-          <div className="note-card">最近登录时间：{profile?.lastLoginAt ? profile.lastLoginAt.replace('T', ' ').slice(0, 19) : '未记录'}</div>
-        </article>
-      </section>
-      <section className="panel-card">
-        <div className="section-kicker">账号安全</div>
-        <div className="stack-list compact-top-gap">
-          <label className="form-field">
-            <span>当前密码</span>
-            <input
-              type="password"
-              value={passwordForm.currentPassword}
-              onChange={(event) => setPasswordForm((current) => ({ ...current, currentPassword: event.target.value }))}
-              placeholder="请输入当前密码"
-            />
-          </label>
-          <label className="form-field">
-            <span>新密码</span>
-            <input
-              type="password"
-              value={passwordForm.newPassword}
-              onChange={(event) => setPasswordForm((current) => ({ ...current, newPassword: event.target.value }))}
-              placeholder="至少 8 位"
-            />
-          </label>
-          <label className="form-field">
-            <span>确认新密码</span>
-            <input
-              type="password"
-              value={passwordForm.confirmPassword}
-              onChange={(event) => setPasswordForm((current) => ({ ...current, confirmPassword: event.target.value }))}
-              placeholder="再次输入新密码"
-            />
-          </label>
-          <div className="action-row">
-            <button className="primary-button" type="button" onClick={() => void handleChangePassword()} disabled={passwordState.isSubmitting}>
-              {passwordState.isSubmitting ? '提交中...' : '更新登录密码'}
+          <div className="section-kicker">账户设置</div>
+          <div className="stack-list">
+            <Link className="action-button" to="/account/profile">
+              👤 个人资料
+            </Link>
+            <Link className="action-button" to="/account/security">
+              🔐 账户安全
+            </Link>
+            <Link className="action-button" to="/account/billing">
+              💳 账单管理
+            </Link>
+            <button className="secondary-button" type="button">
+              🚪 退出登录
             </button>
           </div>
-          {passwordState.error ? <div className="note-card error-card">{passwordState.error}</div> : null}
-          {passwordState.success ? <div className="note-card">{passwordState.success}</div> : null}
-        </div>
+        </article>
       </section>
+
+      {stats?.isTrial && (
+        <section className="panel-card" style={{ background: '#fff3cd', padding: '20px', borderLeft: '4px solid #ffc107' }}>
+          <h4>⏰ 试用即将到期</h4>
+          <p>你的试用期还剩 {stats.trialDaysRemaining} 天，升级套餐可继续享受完整功能。</p>
+          <Link className="primary-button" to="/pricing">
+            立即升级
+          </Link>
+        </section>
+      )}
     </div>
   )
 }
