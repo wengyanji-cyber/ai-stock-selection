@@ -7,6 +7,7 @@ import { registerHealthRoutes } from './modules/health/health.route.js'
 import { registerJobRoutes } from './modules/jobs/jobs.route.js'
 import { registerMarketRoutes } from './modules/market/market.route.js'
 import { registerMembershipRoutes } from './modules/membership/membership.route.js'
+import { registerAdminMembershipRoutes } from './modules/membership/admin-membership.route.js'
 import { registerPaymentRoutes } from './modules/payment/payment.route.js'
 import { registerPushRoutes } from './modules/push/push.route.js'
 
@@ -28,6 +29,7 @@ export function buildApp() {
   app.register(registerDataRoutes)
   app.register(registerPushRoutes)
   app.register(registerMembershipRoutes)
+  app.register(registerAdminMembershipRoutes)
   app.register(registerPaymentRoutes)
 
   return app

@@ -7,48 +7,34 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum JobRunStatus {
-  PENDING
-  RUNNING
-  SUCCESS
-  FAILED
-}
-
-enum PushChannel {
-  APP
-  WECHAT
-  SMS
-  EMAIL
-}
-
 model SourceSnapshot {
-  id            BigInt   @id @default(autoincrement())
-  sourceCode    String   @db.VarChar(64)
-  snapshotDate  DateTime @db.Date
-  payload       Json
-  checksum      String?  @db.VarChar(128)
-  createdAt     DateTime @default(now())
+  id           BigInt   @id @default(autoincrement())
+  sourceCode   String   @db.VarChar(64)
+  snapshotDate DateTime @db.Date
+  payload      Json
+  checksum     String?  @db.VarChar(128)
+  createdAt    DateTime @default(now())
 
   @@unique([sourceCode, snapshotDate])
   @@index([snapshotDate])
 }
 
 model MarketDailyBar {
-  id            BigInt   @id @default(autoincrement())
-  tradeDate     DateTime @db.Date
-  stockCode     String   @db.VarChar(16)
-  stockName     String   @db.VarChar(64)
-  sectorCode    String?  @db.VarChar(32)
-  sectorName    String?  @db.VarChar(64)
-  openPrice     Decimal? @db.Decimal(12, 4)
-  closePrice    Decimal? @db.Decimal(12, 4)
-  highPrice     Decimal? @db.Decimal(12, 4)
-  lowPrice      Decimal? @db.Decimal(12, 4)
-  turnoverRate  Decimal? @db.Decimal(10, 4)
-  volumeRatio   Decimal? @db.Decimal(10, 4)
-  amount        Decimal? @db.Decimal(18, 2)
-  extraMetrics  Json?
-  createdAt     DateTime @default(now())
+  id           BigInt   @id @default(autoincrement())
+  tradeDate    DateTime @db.Date
+  stockCode    String   @db.VarChar(16)
+  stockName    String   @db.VarChar(64)
+  sectorCode   String?  @db.VarChar(32)
+  sectorName   String?  @db.VarChar(64)
+  openPrice    Decimal? @db.Decimal(12, 4)
+  closePrice   Decimal? @db.Decimal(12, 4)
+  highPrice    Decimal? @db.Decimal(12, 4)
+  lowPrice     Decimal? @db.Decimal(12, 4)
+  turnoverRate Decimal? @db.Decimal(10, 4)
+  volumeRatio  Decimal? @db.Decimal(10, 4)
+  amount       Decimal? @db.Decimal(18, 2)
+  extraMetrics Json?
+  createdAt    DateTime @default(now())
 
   @@unique([tradeDate, stockCode])
   @@index([stockCode, tradeDate])
@@ -68,19 +54,19 @@ model CandidatePoolSnapshot {
 }
 
 model CandidateSignal {
-  id                  BigInt                @id @default(autoincrement())
-  snapshotId          BigInt
-  stockCode           String                @db.VarChar(16)
-  stockName           String                @db.VarChar(64)
-  sectorName          String?               @db.VarChar(64)
-  signalLevel         String                @db.VarChar(32)
-  score               Decimal               @db.Decimal(8, 2)
-  riskScore           Decimal?              @db.Decimal(8, 2)
-  holdingWindow       String?               @db.VarChar(32)
-  driverSummary       String?               @db.VarChar(255)
-  tags                Json?
-  createdAt           DateTime              @default(now())
-  snapshot            CandidatePoolSnapshot @relation(fields: [snapshotId], references: [id])
+  id            BigInt                @id @default(autoincrement())
+  snapshotId    BigInt
+  stockCode     String                @db.VarChar(16)
+  stockName     String                @db.VarChar(64)
+  sectorName    String?               @db.VarChar(64)
+  signalLevel   String                @db.VarChar(32)
+  score         Decimal               @db.Decimal(8, 2)
+  riskScore     Decimal?              @db.Decimal(8, 2)
+  holdingWindow String?               @db.VarChar(32)
+  driverSummary String?               @db.VarChar(255)
+  tags          Json?
+  createdAt     DateTime              @default(now())
+  snapshot      CandidatePoolSnapshot @relation(fields: [snapshotId], references: [id])
 
   @@index([snapshotId])
   @@index([stockCode])
@@ -88,63 +74,63 @@ model CandidateSignal {
 }
 
 model DiagnosisSnapshot {
-  id               BigInt   @id @default(autoincrement())
-  stockCode        String   @db.VarChar(16)
-  tradeDate        DateTime @db.Date
-  versionTag       String   @db.VarChar(64)
-  totalScore       Decimal  @db.Decimal(8, 2)
-  biasLabel        String?  @db.VarChar(32)
-  trendLabel       String?  @db.VarChar(32)
-  riskLabel        String?  @db.VarChar(32)
-  summary          Json
-  factors          Json?
-  createdAt        DateTime @default(now())
+  id         BigInt   @id @default(autoincrement())
+  stockCode  String   @db.VarChar(16)
+  tradeDate  DateTime @db.Date
+  versionTag String   @db.VarChar(64)
+  totalScore Decimal  @db.Decimal(8, 2)
+  biasLabel  String?  @db.VarChar(32)
+  trendLabel String?  @db.VarChar(32)
+  riskLabel  String?  @db.VarChar(32)
+  summary    Json
+  factors    Json?
+  createdAt  DateTime @default(now())
 
   @@unique([stockCode, tradeDate, versionTag])
   @@index([tradeDate])
 }
 
 model ReviewSnapshot {
-  id                 BigInt   @id @default(autoincrement())
-  reviewDate         DateTime @db.Date
-  strategyCode       String   @db.VarChar(64)
-  candidateCount     Int
-  hitCount           Int
-  winRate            Decimal? @db.Decimal(8, 4)
-  excessReturn       Decimal? @db.Decimal(10, 4)
-  maxDrawdown        Decimal? @db.Decimal(10, 4)
-  detailPayload      Json?
-  createdAt          DateTime @default(now())
+  id             BigInt   @id @default(autoincrement())
+  reviewDate     DateTime @db.Date
+  strategyCode   String   @db.VarChar(64)
+  candidateCount Int
+  hitCount       Int
+  winRate        Decimal? @db.Decimal(8, 4)
+  excessReturn   Decimal? @db.Decimal(10, 4)
+  maxDrawdown    Decimal? @db.Decimal(10, 4)
+  detailPayload  Json?
+  createdAt      DateTime @default(now())
 
   @@unique([reviewDate, strategyCode])
 }
 
 model AppUser {
-  id             BigInt   @id @default(autoincrement())
-  userCode       String   @unique @db.VarChar(64)
-  mobile         String?  @unique @db.VarChar(32)
-  nickname       String?  @db.VarChar(64)
-  passwordHash   String?  @db.VarChar(255)
-  roleCode       String   @default("USER") @db.VarChar(32)
-  membershipPlan String?  @db.VarChar(32)
-  status         String   @default("TRIAL") @db.VarChar(32)
+  id             BigInt          @id @default(autoincrement())
+  userCode       String          @unique @db.VarChar(64)
+  mobile         String?         @unique @db.VarChar(32)
+  nickname       String?         @db.VarChar(64)
+  passwordHash   String?         @db.VarChar(255)
+  roleCode       String          @default("USER") @db.VarChar(32)
+  membershipPlan String?         @db.VarChar(32)
+  status         String          @default("TRIAL") @db.VarChar(32)
   lastLoginAt    DateTime?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
   pushTasks      PushTask[]
   sessions       UserSession[]
   watchlistItems WatchlistItem[]
 }
 
 model UserSession {
-  id         BigInt   @id @default(autoincrement())
+  id         BigInt    @id @default(autoincrement())
   userId     BigInt
-  token      String   @unique @db.VarChar(128)
+  token      String    @unique @db.VarChar(128)
   expiresAt  DateTime
   revokedAt  DateTime?
   lastUsedAt DateTime?
-  createdAt  DateTime @default(now())
-  user       AppUser  @relation(fields: [userId], references: [id])
+  createdAt  DateTime  @default(now())
+  user       AppUser   @relation(fields: [userId], references: [id])
 
   @@index([userId, expiresAt])
   @@index([token, revokedAt])
@@ -185,15 +171,15 @@ model ModelRuleConfig {
 }
 
 model PushTask {
-  id             BigInt      @id @default(autoincrement())
-  userId         BigInt?
-  channel        PushChannel
-  templateCode   String      @db.VarChar(64)
-  businessKey    String?     @db.VarChar(128)
-  payload        Json
-  sentAt         DateTime?
-  createdAt      DateTime    @default(now())
-  user           AppUser?    @relation(fields: [userId], references: [id])
+  id           BigInt      @id @default(autoincrement())
+  userId       BigInt?
+  channel      PushChannel
+  templateCode String      @db.VarChar(64)
+  businessKey  String?     @db.VarChar(128)
+  payload      Json
+  sentAt       DateTime?
+  createdAt    DateTime    @default(now())
+  user         AppUser?    @relation(fields: [userId], references: [id])
 
   @@index([userId, createdAt])
   @@index([channel, createdAt])
@@ -219,21 +205,53 @@ model JobRun {
 }
 
 model PaymentOrder {
-  id            BigInt   @id @default(autoincrement())
-  orderNo       String   @unique @db.VarChar(64)
-  userId        BigInt   @db.BigInt
-  userCode      String   @db.VarChar(64)
-  planCode      String   @db.VarChar(32)
-  planName      String   @db.VarChar(64)
-  amount        Decimal  @db.Decimal(10, 2)
-  paymentMethod String   @default("wechat") @db.VarChar(32)
-  status        String   @default("PENDING") @db.VarChar(32)
-  transactionId String?  @db.VarChar(128)
+  id            BigInt    @id @default(autoincrement())
+  orderNo       String    @unique @db.VarChar(64)
+  userId        BigInt
+  userCode      String    @db.VarChar(64)
+  planCode      String    @db.VarChar(32)
+  planName      String    @db.VarChar(64)
+  amount        Decimal   @db.Decimal(10, 2)
+  paymentMethod String    @default("wechat") @db.VarChar(32)
+  status        String    @default("PENDING") @db.VarChar(32)
+  transactionId String?   @db.VarChar(128)
   paidAt        DateTime?
   expiresAt     DateTime?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
   @@index([userCode, createdAt])
   @@index([orderNo])
+}
+
+model MembershipPlan {
+  id              BigInt   @id @default(autoincrement())
+  planCode        String   @unique @db.VarChar(32)
+  planName        String   @db.VarChar(64)
+  price           Decimal  @db.Decimal(10, 2)
+  period          String   @default("month") @db.VarChar(16)
+  dailyCandidates Int      @default(0)
+  watchlistLimit  Int      @default(0)
+  features        Json?
+  isEnabled       Boolean  @default(true)
+  sortOrder       Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([isEnabled])
+  @@index([sortOrder])
+}
+
+enum JobRunStatus {
+  PENDING
+  RUNNING
+  SUCCESS
+  FAILED
+}
+
+enum PushChannel {
+  APP
+  WECHAT
+  SMS
+  EMAIL
 }
