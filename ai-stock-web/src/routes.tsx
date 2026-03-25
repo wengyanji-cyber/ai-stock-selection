@@ -8,6 +8,7 @@ import MarketOverviewPage from './pages/MarketOverviewPage'
 import PricingPage from './pages/PricingPage'
 import RegisterPage from './pages/RegisterPage'
 import ReviewPage from './pages/ReviewPage'
+import StockDetailPage from './pages/StockDetailPage'
 import TrialPage from './pages/TrialPage'
 import WatchPage from './pages/WatchPage'
 
@@ -22,6 +23,7 @@ export const webRoutes: WebRouteConfig[] = [
   { path: '/', label: '首页', element: <Navigate to="/market" replace /> },
   { path: '/market', label: '市场首页', nav: true, element: <MarketOverviewPage /> },
   { path: '/candidates', label: '候选池', nav: true, element: <CandidatesPage /> },
+  { path: '/stocks/:stockCode', label: '个股详情', nav: false, element: <StockDetailPage /> },
   { path: '/diagnosis', label: '个股诊断', nav: true, element: <DiagnosisPage /> },
   { path: '/watch', label: '自选观察', nav: true, element: <WatchPage /> },
   { path: '/review', label: '复盘', nav: true, element: <ReviewPage /> },

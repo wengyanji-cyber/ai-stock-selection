@@ -578,3 +578,61 @@ export async function getUserProfile(userId: bigint) {
 
   return profile
 }
+
+export async function getStockDetail(stockCode: string) {
+  const now = new Date()
+  const tradeDate = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()))
+
+  const [bar, diagnosis, candidate] = await Promise.all([
+    prisma.marketDailyBar.findFirst({
+      where: { tradeDate, stockCode },
+    }),
+    prisma.diagnosisSnapshot.findFirst({
+      where: { stockCode, tradeDate },
+      orderBy: { createdAt: 'desc' },
+    }),
+    prisma.candidateSignal.findFirst({
+      where: { stockCode },
+      orderBy: { createdAt: 'desc' },
+    }),
+  ])
+
+  if (!bar) {
+    return null
+  }
+
+  const summary = diagnosis?.summary as Record<string, unknown> | null
+
+  return {
+    stockCode: bar.stockCode,
+    stockName: bar.stockName,
+    sectorName: bar.sectorName || candidate?.sectorName || '未分类',
+    currentPrice: Number(bar.closePrice) || 0,
+    changeRate: diagnosis ? (summary?.trendLabel === '上升趋势' ? 1 : -1) * 0.5 : 0,
+    amount: Number(bar.amount) || 0,
+    diagnosis: diagnosis
+      ? {
+          totalScore: Number(diagnosis.totalScore),
+          biasLabel: diagnosis.biasLabel,
+          trendLabel: diagnosis.trendLabel,
+          riskLabel: diagnosis.riskLabel,
+          summary: summary?.summary as string,
+          observe: summary?.observe as string,
+          support: summary?.support as string,
+          pressure: summary?.pressure as string,
+          stopLoss: summary?.stopLoss as string,
+          action: summary?.action as string,
+        }
+      : null,
+    signal: candidate
+      ? {
+          signalLevel: candidate.signalLevel,
+          score: Number(candidate.score),
+          riskScore: Number(candidate.riskScore),
+          holdingWindow: candidate.holdingWindow,
+          driverSummary: candidate.driverSummary,
+        }
+      : null,
+    factors: diagnosis?.factors as Record<string, unknown> | null,
+  }
+}

@@ -8,6 +8,7 @@ import {
   getLatestReview,
   getMarketHome,
   getMarketOverview,
+  getStockDetail,
   getUserProfile,
   getWatchlistItems,
   getWebDemoData,
@@ -41,6 +42,23 @@ export async function registerMarketRoutes(app: FastifyInstance) {
     data: await getCandidateDetails(),
     meta: { source: 'mysql', version: 'v1' },
   }))
+
+  app.get('/api/v1/stocks/:stockCode', async (request) => {
+    const params = request.params as { stockCode: string }
+
+    const detail = await getStockDetail(params.stockCode)
+    if (!detail) {
+      return {
+        data: null,
+        meta: { source: 'mysql', version: 'v1' },
+      }
+    }
+
+    return {
+      data: detail,
+      meta: { source: 'mysql', version: 'v1' },
+    }
+  })
 
   app.get('/api/v1/diagnoses', async (request) => {
     const query = request.query as Record<string, unknown>

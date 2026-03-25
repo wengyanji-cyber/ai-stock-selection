@@ -96,7 +96,10 @@ function CandidatesPage() {
             </ul>
             <div className="note-card">失效条件：{candidate.invalid}</div>
             <div className="action-row">
-              <button className="secondary-button" type="button" onClick={() => navigate(`/diagnosis?code=${candidate.code}`)}>
+              <button className="secondary-button" type="button" onClick={() => navigate(`/stocks/${candidate.code}`)}>
+                查看个股详情
+              </button>
+              <button className="action-button primary" type="button" onClick={() => navigate(`/diagnosis?code=${candidate.code}`)}>
                 查看诊股详情
               </button>
             </div>
