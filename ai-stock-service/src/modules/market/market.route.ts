@@ -33,9 +33,33 @@ export async function registerMarketRoutes(app: FastifyInstance) {
     meta: { source: 'mysql', version: 'v1' },
   }))
 
-  app.get('/api/v1/candidates', async (request) => {
+  app.get('/api/v1/candidates', async (request, reply) => {
+    const { requireAuthSession } = await import('../auth/auth.service.js')
     const { checkCandidateLimit } = await import('../../lib/middleware.js')
-    const limitCheck = await checkCandidateLimit(request as any, 0)
+    
+    console.log('[Candidates] Getting session...')
+    
+    // 获取 session
+    const session = await requireAuthSession(request).catch((e) => {
+      console.log('[Candidates] requireAuthSession error:', e.message)
+      return null
+    })
+    
+    console.log('[Candidates] Session:', session ? 'found' : 'not found')
+    
+    // 未登录返回提示
+    if (!session) {
+      console.log('[Candidates] No session, returning login prompt')
+      return {
+        data: [],
+        error: '请先登录',
+        upgradeHint: '登录后即可体验',
+        meta: { source: 'mysql', version: 'v1' },
+      }
+    }
+    
+    // 检查候选数量限制 - 直接传 session.user
+    const limitCheck = await checkCandidateLimit(request as any, 0, session)
     
     if (!limitCheck.allowed) {
       return {

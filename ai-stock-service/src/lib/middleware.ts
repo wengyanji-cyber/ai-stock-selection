@@ -39,14 +39,31 @@ export const FEATURE_ACCESS: Record<string, string[]> = {
 
 async function getSession(request: FastifyRequest): Promise<AuthSession | null> {
   try {
-    const session = (request as any).session
-    console.log('[Middleware] Session from request:', session ? 'found' : 'not found')
-    if (!session?.user) {
-      console.log('[Middleware] No session.user')
+    // 尝试从 request 上下文中获取 session
+    const ctx = request as any
+    const session = ctx.session || ctx.state?.session
+    
+    if (!session) {
+      console.log('[Middleware] No session found in request')
       return null
     }
-    console.log('[Middleware] Session user:', session.user.userCode)
-    return session as unknown as AuthSession
+    
+    // Session 对象可能是 { user: {...} } 或 { profile: {...} }
+    const user = session.user || session.profile
+    if (!user) {
+      console.log('[Middleware] No user in session')
+      return null
+    }
+    
+    console.log('[Middleware] Session user:', user.userCode, 'plan:', user.membershipPlan)
+    
+    return {
+      user: {
+        id: user.id,
+        userCode: user.userCode,
+        membershipPlan: user.membershipPlan,
+      },
+    }
   } catch (e) {
     console.log('[Middleware] getSession error:', e)
     return null
@@ -64,8 +81,10 @@ export function hasFeatureAccess(plan: string | null, feature: string) {
   return features.includes(feature)
 }
 
-export async function checkCandidateLimit(request: FastifyRequest, count: number): Promise<LimitCheckResult> {
-  const session = await getSession(request)
+export async function checkCandidateLimit(request: FastifyRequest, count: number, providedSession?: any): Promise<LimitCheckResult> {
+  // 如果提供了 session，直接使用
+  const session = providedSession || await getSession(request)
+  
   if (!session) {
     return {
       allowed: false,
