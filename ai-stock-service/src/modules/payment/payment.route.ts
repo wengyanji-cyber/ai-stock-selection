@@ -149,18 +149,24 @@ export async function registerPaymentRoutes(app: FastifyInstance) {
 
       // 示例：更新订单状态
       const orderNo = typeof body.out_trade_no === 'string' ? body.out_trade_no : ''
+      console.log('[Payment] Processing order:', orderNo)
       if (orderNo) {
-        await prisma.paymentOrder.update({
-          where: { orderNo },
-          data: {
-            status: 'PAID',
-            paidAt: new Date(),
-            transactionId: typeof body.transaction_id === 'string' ? body.transaction_id : null,
-          },
-        })
+        const order = await prisma.paymentOrder.findUnique({ where: { orderNo } })
+        console.log('[Payment] Order found:', order ? 'yes' : 'no')
+        if (order) {
+          await prisma.paymentOrder.update({
+            where: { orderNo },
+            data: {
+              status: 'PAID',
+              paidAt: new Date(),
+              transactionId: typeof body.transaction_id === 'string' ? body.transaction_id : null,
+            },
+          })
 
-        // TODO: 更新用户会员套餐
-        // await upgradeUserMembership(userCode, planCode)
+          // 更新用户会员套餐
+          console.log('[Payment] Upgrading membership:', order.userCode, order.planCode)
+          await upgradeUserMembership(order.userCode, order.planCode)
+        }
       }
 
       reply.code(200)
@@ -243,4 +249,15 @@ async function createWechatPayParams(orderNo: string, amount: number) {
     signType: 'RSA',
     paySign: 'mock_signature',
   }
+}
+
+/**
+ * 升级用户会员套餐
+ */
+async function upgradeUserMembership(userCode: string, planCode: string) {
+  await prisma.appUser.update({
+    where: { userCode },
+    data: { membershipPlan: planCode as any },
+  })
+  console.log('[Payment] User membership upgraded:', userCode, '->', planCode)
 }
