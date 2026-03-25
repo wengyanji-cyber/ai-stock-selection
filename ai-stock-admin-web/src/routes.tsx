@@ -5,6 +5,7 @@ import DataJobsPage from './pages/DataJobsPage'
 import LoginPage from './pages/LoginPage'
 import ModelRulesPage from './pages/ModelRulesPage'
 import OperationsDashboardPage from './pages/OperationsDashboardPage'
+import SystemStatusPage from './pages/SystemStatusPage'
 import TechDashboardPage from './pages/TechDashboardPage'
 import UserGrowthPage from './pages/UserGrowthPage'
 
@@ -24,4 +25,5 @@ export const adminRoutes: AdminRouteConfig[] = [
   { path: '/tech', label: '技术总览', section: 'tech', element: <TechDashboardPage /> },
   { path: '/tech/jobs', label: '数据任务', section: 'tech', element: <DataJobsPage /> },
   { path: '/tech/rules', label: '模型与规则', section: 'tech', element: <ModelRulesPage /> },
+  { path: '/tech/status', label: '系统状态', section: 'tech', element: <SystemStatusPage /> },
 ]
