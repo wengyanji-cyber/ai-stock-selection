@@ -1,13 +1,13 @@
 # ai-stock-service
 
-AI 选股项目第一版后端骨架，当前包含：
+AI 选股项目后端服务，当前包含：
 
 - Fastify HTTP 服务
 - Prisma + MySQL schema 初版
-- BullMQ + Redis 队列连接占位
+- BullMQ + Redis 队列与 worker 执行链路
 - 用户端和管理端数据库驱动接口
 - watchlist / model rule 独立业务表
-- demo worker 与任务投递接口
+- 多源行情抓取、降级分析与任务投递接口
 
 ## 本地启动
 
@@ -16,6 +16,8 @@ AI 选股项目第一版后端骨架，当前包含：
 3. 生成 Prisma Client：`npm run prisma:generate`
 4. 初始化数据库表和演示数据：`npm run db:setup`
 5. 启动开发服务：`npm run dev`
+
+`npm run db:setup` 已支持重复执行：若表、字段或索引已存在，会跳过对应迁移并继续执行 seed。
 
 ## 当前接口
 
@@ -52,6 +54,7 @@ AI 选股项目第一版后端骨架，当前包含：
 - `GET /api/v1/jobs/queues`
 - `GET /api/v1/jobs/runs`
 - `POST /api/v1/jobs/demo-dispatch`
+- `POST /api/v1/jobs/cleanup-failed`
 
 ## 当前已落地数据表
 
@@ -62,6 +65,7 @@ AI 选股项目第一版后端骨架，当前包含：
 - `DiagnosisSnapshot`
 - `ReviewSnapshot`
 - `AppUser`
+- `UserSession`
 - `PushTask`
 - `JobRun`
 - `WatchlistItem`
@@ -93,9 +97,12 @@ AI 选股项目第一版后端骨架，当前包含：
 
 - 启动演示 worker：`npm run worker:demo`
 - 通过 `POST /api/v1/jobs/demo-dispatch` 可投递一组抓取 / 分析 / 推送演示任务
+- 通过 `POST /api/v1/jobs/cleanup-failed` 可清理 BullMQ 队列中的历史失败任务，以及数据库中的失败 `JobRun` 记录
+- `market-fetch` 优先尝试 Eastmoney，失败后回退到 Sina 代表性样本，再失败时回退到内置演示行情
+- `market-analyze` 会优先分析当日行情；若当日行情缺失，会回补最近一次可用行情，仍无数据时再回退到内置演示行情
 
-## 下一步建议
+## 当前说明
 
-- 将 trial 用户体系升级为真实鉴权和会话体系
-- 把 demo worker 推进为真实抓取 / 分析 / 推送业务任务
-- 继续把剩余聚合演示接口拆为更细粒度业务接口
+- 鉴权、会话、管理员权限控制已落地
+- 真实行情抓取受外部源可用性影响，当前采用“真实源优先 + 备用源 + 内置回退”策略保证任务链路稳定
+- 当前输出仍属于公开行情的粗粒度辅助分析，不构成收益承诺或交易建议

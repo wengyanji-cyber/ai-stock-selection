@@ -1,7 +1,7 @@
 import { ADMIN_API_BASE_URL, ADMIN_DATA_MODE } from '../constants/runtime'
 import { adminData } from '../mock/adminData'
 import { clearAdminSession, getAdminToken, saveAdminSession, type AdminSession } from '../utils/session'
-import type { AdminData, AdminUser, ComplianceSummary, JobRunItem, ModelRule, QueueHealth } from '../types/admin'
+import type { AdminData, AdminUser, ComplianceSummary, FailedJobCleanupResult, JobRunItem, ModelRule, QueueHealth } from '../types/admin'
 
 class ApiError extends Error {
   status: number
@@ -148,6 +148,30 @@ export async function dispatchDemoJobs(): Promise<{ count: number; source: 'api'
 
   const payload = await requireJson<{ data: Array<unknown> }>(response)
   return { count: payload.data.length, source: 'api' }
+}
+
+export async function cleanupFailedJobs(): Promise<{ data: FailedJobCleanupResult; source: 'api' | 'mock' }> {
+  if (ADMIN_DATA_MODE === 'mock') {
+    return {
+      data: {
+        removedJobRuns: 0,
+        queues: [
+          { name: 'market-fetch', removed: 0 },
+          { name: 'market-analyze', removed: 0 },
+          { name: 'user-push', removed: 0 },
+        ],
+      },
+      source: 'mock',
+    }
+  }
+
+  const response = await fetch(`${ADMIN_API_BASE_URL}/api/v1/jobs/cleanup-failed`, {
+    method: 'POST',
+    headers: buildAdminHeaders(),
+  })
+
+  const payload = await requireJson<{ data: FailedJobCleanupResult }>(response)
+  return { data: payload.data, source: 'api' }
 }
 
 export async function fetchModelRules(): Promise<{ data: ModelRule[]; source: 'api' | 'mock' }> {

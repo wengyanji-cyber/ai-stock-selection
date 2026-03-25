@@ -109,3 +109,25 @@ export async function getQueueHealth() {
     }
   }
 }
+
+export async function cleanupFailedQueueJobs() {
+  if (connection.status === 'wait') {
+    await connection.connect()
+  }
+
+  const queues = createQueues()
+
+  const [fetchFailed, analyzeFailed, pushFailed] = await Promise.all([
+    queues.fetchQueue.clean(0, 1000, 'failed'),
+    queues.analyzeQueue.clean(0, 1000, 'failed'),
+    queues.pushQueue.clean(0, 1000, 'failed'),
+  ])
+
+  return {
+    queues: [
+      { name: 'market-fetch', removed: fetchFailed.length },
+      { name: 'market-analyze', removed: analyzeFailed.length },
+      { name: 'user-push', removed: pushFailed.length },
+    ],
+  }
+}

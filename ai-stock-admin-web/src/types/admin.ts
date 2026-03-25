@@ -91,6 +91,14 @@ export type QueueHealth = {
   queues: QueueMetric[]
 }
 
+export type FailedJobCleanupResult = {
+  removedJobRuns: number
+  queues: Array<{
+    name: string
+    removed: number
+  }>
+}
+
 export type TrialUser = {
   name: string
   phase: string

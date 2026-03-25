@@ -11,7 +11,7 @@ function formatTimeLabel(value: string | null) {
 }
 
 function DataJobsPage() {
-  const { items, isLoading, isDispatching, source, error, refresh, dispatch } = useJobRuns()
+  const { items, isLoading, isDispatching, isCleaning, cleanupResult, source, error, refresh, dispatch, cleanupFailed } = useJobRuns()
 
   return (
     <div className="page-stack">
@@ -20,10 +20,19 @@ function DataJobsPage() {
           <button className="action-button primary" type="button" onClick={() => void dispatch()} disabled={isDispatching}>
             {isDispatching ? '投递中...' : '投递 Demo 任务'}
           </button>
+          <button className="action-button" type="button" onClick={() => void cleanupFailed()} disabled={isCleaning}>
+            {isCleaning ? '清理中...' : '清理历史失败'}
+          </button>
           <button className="action-button" type="button" onClick={() => void refresh()} disabled={isLoading}>
             {isLoading ? '刷新中...' : '刷新任务状态'}
           </button>
         </div>
+        {cleanupResult ? (
+          <div className="note-card">
+            已清理失败任务：数据库 {cleanupResult.removedJobRuns} 条；
+            {cleanupResult.queues.map((item) => `${item.name} ${item.removed} 条`).join('，')}
+          </div>
+        ) : null}
         {error ? <div className="note-card error-card">任务接口异常：{error}</div> : null}
         {isLoading ? <div className="note-card">正在加载任务记录...</div> : null}
         {!isLoading && items.length === 0 ? <div className="note-card">当前没有任务记录，可先投递一组 demo 任务。</div> : null}

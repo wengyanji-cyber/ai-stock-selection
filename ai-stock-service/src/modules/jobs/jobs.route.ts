@@ -2,7 +2,7 @@ import type { FastifyReply, FastifyRequest } from 'fastify'
 import { FastifyInstance } from 'fastify'
 import { requireRoleSession } from '../auth/auth.service.js'
 import { getQueueHealth } from '../../lib/queue.js'
-import { enqueueDemoJobs, listRecentJobRuns } from './jobs.service.js'
+import { cleanupFailedJobs, enqueueDemoJobs, listRecentJobRuns } from './jobs.service.js'
 
 export async function registerJobRoutes(app: FastifyInstance) {
   async function ensureAdmin(request: FastifyRequest, reply: FastifyReply) {
@@ -55,6 +55,21 @@ export async function registerJobRoutes(app: FastifyInstance) {
 
     return {
       data: await enqueueDemoJobs(),
+      meta: { source: 'bullmq', version: 'v1' },
+    }
+  })
+
+  app.post('/api/v1/jobs/cleanup-failed', async (request, reply) => {
+    const session = await ensureAdmin(request, reply)
+    if (!session) {
+      return {
+        data: null,
+        meta: { source: 'bullmq', version: 'v1' },
+      }
+    }
+
+    return {
+      data: await cleanupFailedJobs(),
       meta: { source: 'bullmq', version: 'v1' },
     }
   })

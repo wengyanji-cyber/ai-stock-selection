@@ -16,7 +16,7 @@
     "db:migrate:account": "prisma db execute --file prisma/migrations/20260325133000_user_password_role/migration.sql --schema prisma/schema.prisma",
     "db:migrate:account-fix": "prisma db execute --file prisma/migrations/20260325134500_expand_password_hash/migration.sql --schema prisma/schema.prisma",
     "db:seed": "tsx prisma/seed.ts",
-    "db:setup": "npm run db:migrate && npm run db:migrate:watch-model && npm run db:migrate:auth && npm run db:migrate:account && npm run db:migrate:account-fix && npm run db:seed",
+    "db:setup": "node scripts/db-setup.mjs",
     "lint": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {

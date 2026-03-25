@@ -1,5 +1,5 @@
 import { JobRunStatus } from '@prisma/client'
-import { getQueueFactories } from '../../lib/queue.js'
+import { cleanupFailedQueueJobs, getQueueFactories } from '../../lib/queue.js'
 import { prisma } from '../../lib/prisma.js'
 
 const demoJobs = [
@@ -73,4 +73,16 @@ export async function enqueueDemoJobs() {
   }
 
   return created
+}
+
+export async function cleanupFailedJobs() {
+  const queueResult = await cleanupFailedQueueJobs()
+  const deleted = await prisma.jobRun.deleteMany({
+    where: { status: JobRunStatus.FAILED },
+  })
+
+  return {
+    removedJobRuns: deleted.count,
+    queues: queueResult.queues,
+  }
 }
