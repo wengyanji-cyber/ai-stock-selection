@@ -1,8 +1,10 @@
 import { PrismaClient, PushChannel } from '@prisma/client'
+import { hashPassword } from '../src/modules/auth/password.service.js'
 
 const prisma = new PrismaClient()
 
 async function main() {
+  await prisma.userSession.deleteMany()
   await prisma.pushTask.deleteMany()
   await prisma.watchlistItem.deleteMany()
   await prisma.modelRuleConfig.deleteMany()
@@ -276,6 +278,8 @@ async function main() {
         userCode: 'trial_user_a',
         mobile: '13800000001',
         nickname: '种子用户A',
+        passwordHash: hashPassword('12345678'),
+        roleCode: 'USER',
         membershipPlan: 'TRIAL',
         status: 'TRIAL',
         lastLoginAt: new Date('2026-03-24T09:28:00+08:00'),
@@ -284,6 +288,8 @@ async function main() {
         userCode: 'trial_user_b',
         mobile: '13800000002',
         nickname: '种子用户B',
+        passwordHash: hashPassword('12345678'),
+        roleCode: 'USER',
         membershipPlan: 'STANDARD',
         status: 'ACTIVE',
         lastLoginAt: new Date('2026-03-24T10:16:00+08:00'),
@@ -292,9 +298,21 @@ async function main() {
         userCode: 'trial_user_c',
         mobile: '13800000003',
         nickname: '种子用户C',
+        passwordHash: hashPassword('12345678'),
+        roleCode: 'USER',
         membershipPlan: 'TRIAL',
         status: 'TRIAL',
         lastLoginAt: new Date('2026-03-24T13:45:00+08:00'),
+      },
+      {
+        userCode: 'admin_root',
+        mobile: '13900000000',
+        nickname: '系统管理员',
+        passwordHash: hashPassword('admin123456'),
+        roleCode: 'ADMIN',
+        membershipPlan: 'ENTERPRISE',
+        status: 'ACTIVE',
+        lastLoginAt: new Date('2026-03-24T08:00:00+08:00'),
       },
     ],
   })
@@ -444,6 +462,7 @@ async function main() {
         ok: true,
         candidateSnapshotId: candidatePoolSnapshot.id.toString(),
         seededUsers: users.length,
+        seededSessions: 0,
         seededWatchlistItems: 3,
         seededModelRules: 3,
       },

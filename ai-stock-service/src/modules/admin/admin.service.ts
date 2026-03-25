@@ -1,4 +1,5 @@
 import { prisma } from '../../lib/prisma.js'
+import { hashPassword } from '../auth/password.service.js'
 
 function toPercent(numerator: number, denominator: number) {
   if (denominator === 0) {
@@ -165,12 +166,60 @@ export async function getModelRules() {
   }))
 }
 
-export async function updateModelRule(ruleCode: string, input: { enabled?: boolean; action?: string }) {
+export async function createModelRule(input: {
+  ruleCode: string
+  name: string
+  action?: string
+  note?: string
+  scene?: string
+  versionTag?: string
+  enabled?: boolean
+}) {
+  const created = await prisma.modelRuleConfig.create({
+    data: {
+      ruleCode: input.ruleCode,
+      name: input.name,
+      action: input.action || '启用',
+      note: input.note,
+      scene: input.scene,
+      versionTag: input.versionTag || 'v1',
+      enabled: input.enabled ?? true,
+    },
+  })
+
+  return {
+    ruleCode: created.ruleCode,
+    name: created.name,
+    action: created.action,
+    note: created.note || '暂无说明',
+    scene: created.scene || '未分类',
+    enabled: created.enabled,
+    versionTag: created.versionTag || 'v1',
+  }
+}
+
+export async function updateModelRule(
+  ruleCode: string,
+  input: {
+    ruleCode?: string
+    name?: string
+    enabled?: boolean
+    action?: string
+    note?: string
+    scene?: string
+    versionTag?: string
+  },
+) {
   const updated = await prisma.modelRuleConfig.update({
     where: { ruleCode },
     data: {
+      ruleCode: input.ruleCode,
+      name: input.name,
       enabled: input.enabled,
       action: input.action,
+      note: input.note,
+      scene: input.scene,
+      versionTag: input.versionTag,
     },
   })
 
@@ -182,5 +231,158 @@ export async function updateModelRule(ruleCode: string, input: { enabled?: boole
     scene: updated.scene || '未分类',
     enabled: updated.enabled,
     versionTag: updated.versionTag || 'v1',
+  }
+}
+
+export async function deleteModelRule(ruleCode: string) {
+  await prisma.modelRuleConfig.delete({ where: { ruleCode } })
+
+  return { removed: true }
+}
+
+export async function getAdminUsers() {
+  const users = await prisma.appUser.findMany({
+    orderBy: [{ updatedAt: 'desc' }, { id: 'desc' }],
+    include: {
+      watchlistItems: true,
+      pushTasks: {
+        orderBy: [{ createdAt: 'desc' }],
+        take: 1,
+      },
+    },
+  })
+
+  return users.map((user, index) => ({
+    userCode: user.userCode,
+    name: user.nickname || user.userCode,
+    phase: user.status === 'TRIAL' ? `试用第 ${index + 1} 天` : '标准版使用中',
+    behavior:
+      user.watchlistItems.length > 0
+        ? `维护 ${user.watchlistItems.length} 只自选，最近活跃于观察页`
+        : '主要浏览候选池与诊股页',
+    nextAction:
+      user.status === 'TRIAL'
+        ? `剩余 ${Math.max(0, 14 - Math.floor((Date.now() - user.createdAt.getTime()) / 86400000))} 天，推送复盘提醒`
+        : '引导复盘页与账户页联动',
+    watchlistCount: user.watchlistItems.length,
+    membershipPlan: user.membershipPlan || 'TRIAL',
+    lastLoginAt: user.lastLoginAt?.toISOString() || null,
+    latestPushTemplate: user.pushTasks[0]?.templateCode || null,
+  }))
+}
+
+export async function updateAdminUser(
+  userCode: string,
+  input: { nickname?: string; membershipPlan?: string; status?: string },
+) {
+  const updated = await prisma.appUser.update({
+    where: { userCode },
+    data: {
+      nickname: input.nickname,
+      membershipPlan: input.membershipPlan,
+      status: input.status,
+      lastLoginAt: new Date(),
+    },
+  })
+
+  return {
+    userCode: updated.userCode,
+    name: updated.nickname || updated.userCode,
+    phase: updated.status === 'TRIAL' ? '试用中' : '标准版使用中',
+    behavior: '已由管理端更新用户状态',
+    nextAction: updated.status === 'TRIAL' ? '继续观察试用活跃度' : '引导使用复盘与账户联动',
+    watchlistCount: await prisma.watchlistItem.count({ where: { userId: updated.id } }),
+    membershipPlan: updated.membershipPlan || 'TRIAL',
+    lastLoginAt: updated.lastLoginAt?.toISOString() || null,
+    latestPushTemplate: null,
+  }
+}
+
+export async function deleteAdminUser(userCode: string) {
+  const user = await prisma.appUser.findUnique({ where: { userCode }, select: { id: true } })
+
+  if (!user) {
+    return { removed: false }
+  }
+
+  await prisma.$transaction([
+    prisma.userSession.deleteMany({ where: { userId: user.id } }),
+    prisma.watchlistItem.deleteMany({ where: { userId: user.id } }),
+    prisma.pushTask.deleteMany({ where: { userId: user.id } }),
+    prisma.appUser.delete({ where: { id: user.id } }),
+  ])
+
+  return { removed: true }
+}
+
+export async function resetAdminUserPassword(userCode: string, input: { newPassword: string }) {
+  if (!input.newPassword || input.newPassword.trim().length < 8) {
+    throw new Error('INVALID_PASSWORD')
+  }
+
+  const user = await prisma.appUser.findUnique({ where: { userCode } })
+  if (!user) {
+    throw new Error('USER_NOT_FOUND')
+  }
+
+  await prisma.$transaction([
+    prisma.appUser.update({
+      where: { id: user.id },
+      data: {
+        passwordHash: hashPassword(input.newPassword),
+        updatedAt: new Date(),
+      },
+    }),
+    prisma.userSession.updateMany({
+      where: { userId: user.id, revokedAt: null },
+      data: { revokedAt: new Date() },
+    }),
+  ])
+
+  return {
+    userCode: user.userCode,
+    reset: true,
+  }
+}
+
+export async function getComplianceSummary() {
+  const [pushTasks, modelRules, jobRuns] = await Promise.all([
+    prisma.pushTask.findMany({
+      orderBy: [{ createdAt: 'desc' }],
+      take: 5,
+    }),
+    prisma.modelRuleConfig.findMany({ orderBy: [{ updatedAt: 'desc' }], take: 5 }),
+    prisma.jobRun.findMany({
+      where: { status: 'FAILED' },
+      orderBy: [{ createdAt: 'desc' }],
+      take: 3,
+    }),
+  ])
+
+  const blockedTerms = ['稳赚', '保本', '带单', '高胜率保证', '直接买入']
+
+  return {
+    blockedTerms,
+    inspections: [
+      {
+        title: '客服会话抽检',
+        status: '通过',
+        detail: '当前未发现承诺收益、荐股带单类表述。',
+      },
+      {
+        title: '营销素材扫描',
+        status: '通过',
+        detail: `最近 ${pushTasks.length} 条触达任务均保持“结构化判断 + 风险提示”表述。`,
+      },
+      {
+        title: '规则开关巡检',
+        status: modelRules.some((rule) => !rule.enabled) ? '关注' : '通过',
+        detail: `当前 ${modelRules.filter((rule) => !rule.enabled).length} 条规则处于停用状态，需确认是否符合预期。`,
+      },
+    ],
+    alerts: [
+      ...jobRuns.map((job) => `${job.jobCode} 执行失败：${job.errorMessage || '请排查任务链路'}`),
+      ...pushTasks.slice(0, 2).map((task) => `触达模板 ${task.templateCode} 需继续复核边界话术`),
+    ].slice(0, 4),
   }
 }

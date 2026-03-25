@@ -20,16 +20,35 @@ AI 选股项目第一版后端骨架，当前包含：
 ## 当前接口
 
 - `GET /api/health`
+- `POST /api/v1/auth/trial-login`
+- `POST /api/v1/auth/register`
+- `POST /api/v1/auth/login`
+- `POST /api/v1/auth/logout`
+- `POST /api/v1/auth/refresh`
+- `POST /api/v1/users/password`
+- `GET /api/v1/users/profile`
 - `GET /api/v1/web/demo-data`
+- `GET /api/v1/market/home`
 - `GET /api/v1/market/overview`
 - `GET /api/v1/candidates`
+- `GET /api/v1/candidates/detail`
+- `GET /api/v1/diagnoses`
+- `GET /api/v1/reviews/latest`
 - `GET /api/v1/watchlist`
 - `POST /api/v1/watchlist`
+- `PATCH /api/v1/watchlist/:stockCode`
 - `DELETE /api/v1/watchlist/:stockCode`
 - `GET /api/v1/admin/demo-data`
 - `GET /api/v1/admin/summary`
+- `GET /api/v1/admin/users`
+- `PATCH /api/v1/admin/users/:userCode`
+- `DELETE /api/v1/admin/users/:userCode`
+- `POST /api/v1/admin/users/:userCode/reset-password`
+- `GET /api/v1/admin/compliance`
 - `GET /api/v1/admin/model-rules`
+- `POST /api/v1/admin/model-rules`
 - `PATCH /api/v1/admin/model-rules/:ruleCode`
+- `DELETE /api/v1/admin/model-rules/:ruleCode`
 - `GET /api/v1/jobs/queues`
 - `GET /api/v1/jobs/runs`
 - `POST /api/v1/jobs/demo-dispatch`
@@ -53,11 +72,20 @@ AI 选股项目第一版后端骨架，当前包含：
 - 用户端默认读取 `VITE_AI_STOCK_API_BASE_URL`，未配置时指向 `http://127.0.0.1:3010`
 - 管理端默认读取 `VITE_AI_STOCK_API_BASE_URL`，未配置时指向 `http://127.0.0.1:3010`
 - 当前前后端均支持接口失败后自动回退本地 mock 数据
+- 用户端登录后通过 Bearer Token 访问 `users/profile` 与 `watchlist` 等受保护接口
+- 用户端进入受保护页面时会自动调用 `auth/refresh` 续期会话，失效后自动跳回登录页
+- 用户端已支持已登录用户主动修改密码，修改后会撤销旧会话并签发新会话
+- 管理端登录后通过 Bearer Token 访问 `admin/*` 受保护接口，且要求 `roleCode=ADMIN`
+- `jobs/*` 任务接口同样要求管理员会话，避免匿名读取任务状态
+- 管理端已支持直接为指定用户重置密码，重置后该用户旧会话会失效
 
 ## 数据库初始化
 
 - 执行建表：`npm run db:migrate`
 - 执行附加业务表迁移：`npm run db:migrate:watch-model`
+- 执行鉴权会话表迁移：`npm run db:migrate:auth`
+- 执行账号密码与角色字段迁移：`npm run db:migrate:account`
+- 执行密码字段长度修复：`npm run db:migrate:account-fix`
 - 导入演示数据：`npm run db:seed`
 - 一键执行：`npm run db:setup`
 
@@ -68,6 +96,6 @@ AI 选股项目第一版后端骨架，当前包含：
 
 ## 下一步建议
 
-- 接入 MySQL 并执行第一版迁移
-- 接入 Redis，并把抓取/分析任务挂到 BullMQ
-- 将前端 mock service 切换为异步 HTTP 调用
+- 将 trial 用户体系升级为真实鉴权和会话体系
+- 把 demo worker 推进为真实抓取 / 分析 / 推送业务任务
+- 继续把剩余聚合演示接口拆为更细粒度业务接口

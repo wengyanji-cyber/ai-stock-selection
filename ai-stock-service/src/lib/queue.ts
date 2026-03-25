@@ -44,25 +44,68 @@ export async function getQueueHealth() {
 
     const { fetchQueue, analyzeQueue, pushQueue } = createQueues()
 
-    const [fetchWaiting, analyzeWaiting, pushWaiting] = await Promise.all([
-      fetchQueue.getWaitingCount(),
-      analyzeQueue.getWaitingCount(),
-      pushQueue.getWaitingCount(),
+    const [fetchCounts, analyzeCounts, pushCounts] = await Promise.all([
+      Promise.all([
+        fetchQueue.getWaitingCount(),
+        fetchQueue.getActiveCount(),
+        fetchQueue.getCompletedCount(),
+        fetchQueue.getFailedCount(),
+        fetchQueue.getDelayedCount(),
+      ]),
+      Promise.all([
+        analyzeQueue.getWaitingCount(),
+        analyzeQueue.getActiveCount(),
+        analyzeQueue.getCompletedCount(),
+        analyzeQueue.getFailedCount(),
+        analyzeQueue.getDelayedCount(),
+      ]),
+      Promise.all([
+        pushQueue.getWaitingCount(),
+        pushQueue.getActiveCount(),
+        pushQueue.getCompletedCount(),
+        pushQueue.getFailedCount(),
+        pushQueue.getDelayedCount(),
+      ]),
     ])
 
     return {
       status: 'ready',
-      fetchQueue: { waiting: fetchWaiting },
-      analyzeQueue: { waiting: analyzeWaiting },
-      pushQueue: { waiting: pushWaiting },
+      queues: [
+        {
+          name: 'market-fetch',
+          waiting: fetchCounts[0],
+          active: fetchCounts[1],
+          completed: fetchCounts[2],
+          failed: fetchCounts[3],
+          delayed: fetchCounts[4],
+        },
+        {
+          name: 'market-analyze',
+          waiting: analyzeCounts[0],
+          active: analyzeCounts[1],
+          completed: analyzeCounts[2],
+          failed: analyzeCounts[3],
+          delayed: analyzeCounts[4],
+        },
+        {
+          name: 'user-push',
+          waiting: pushCounts[0],
+          active: pushCounts[1],
+          completed: pushCounts[2],
+          failed: pushCounts[3],
+          delayed: pushCounts[4],
+        },
+      ],
     }
   } catch (error) {
     return {
       status: 'degraded',
       reason: error instanceof Error ? error.message : 'Redis unavailable',
-      fetchQueue: { waiting: null },
-      analyzeQueue: { waiting: null },
-      pushQueue: { waiting: null },
+      queues: [
+        { name: 'market-fetch', waiting: null, active: null, completed: null, failed: null, delayed: null },
+        { name: 'market-analyze', waiting: null, active: null, completed: null, failed: null, delayed: null },
+        { name: 'user-push', waiting: null, active: null, completed: null, failed: null, delayed: null },
+      ],
     }
   }
 }

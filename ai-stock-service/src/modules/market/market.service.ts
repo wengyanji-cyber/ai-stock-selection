@@ -1,5 +1,8 @@
 import type { Prisma } from '@prisma/client'
 import { prisma } from '../../lib/prisma.js'
+import { createUserSession } from '../auth/auth.service.js'
+
+const DEFAULT_USER_CODE = 'trial_user_a'
 
 function asRecord(value: Prisma.JsonValue | null | undefined): Record<string, unknown> {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
@@ -59,6 +62,120 @@ function getWatchStatus(index: number) {
   }
 
   return { status: '结构转强', statusKey: 'stronger' }
+}
+
+function normalizeUserCode(userCode?: string) {
+  return userCode?.trim() || DEFAULT_USER_CODE
+}
+
+function buildTrialUserCode() {
+  return `trial_${Date.now().toString(36)}`
+}
+
+async function findUserByCode(userCode?: string) {
+  return prisma.appUser.findUnique({
+    where: { userCode: normalizeUserCode(userCode) },
+  })
+}
+
+async function ensureUser(input: { userCode?: string; nickname?: string; mobile?: string }) {
+  const requestedCode = input.userCode?.trim()
+  const userCode = requestedCode || buildTrialUserCode()
+  const existing = await prisma.appUser.findUnique({ where: { userCode } })
+
+  if (existing) {
+    return prisma.appUser.update({
+      where: { id: existing.id },
+      data: {
+        nickname: input.nickname?.trim() || existing.nickname,
+        mobile: input.mobile?.trim() || existing.mobile,
+        lastLoginAt: new Date(),
+      },
+    })
+  }
+
+  return prisma.appUser.create({
+    data: {
+      userCode,
+      nickname: input.nickname?.trim() || `用户${userCode.slice(-4)}`,
+      mobile: input.mobile?.trim() || null,
+      membershipPlan: 'TRIAL',
+      status: 'TRIAL',
+      lastLoginAt: new Date(),
+    },
+  })
+}
+
+function calcTrialDaysRemaining(createdAt: Date) {
+  const diffDays = Math.floor((Date.now() - createdAt.getTime()) / (1000 * 60 * 60 * 24))
+  return Math.max(0, 14 - diffDays)
+}
+
+async function buildUserProfile(userCode?: string) {
+  const user = await findUserByCode(userCode)
+
+  if (!user) {
+    return null
+  }
+
+  const [watchlistCount, recentPushCount, latestWatchlist] = await Promise.all([
+    prisma.watchlistItem.count({ where: { userId: user.id } }),
+    prisma.pushTask.count({ where: { userId: user.id } }),
+    prisma.watchlistItem.findMany({
+      where: { userId: user.id },
+      orderBy: [{ updatedAt: 'desc' }, { id: 'desc' }],
+      take: 3,
+    }),
+  ])
+
+  return {
+    userCode: user.userCode,
+    nickname: user.nickname || user.userCode,
+    membershipPlan: user.membershipPlan || 'TRIAL',
+    status: user.status,
+    trialDaysRemaining: user.status === 'TRIAL' ? calcTrialDaysRemaining(user.createdAt) : 0,
+    watchlistCount,
+    diagnosisCount: await prisma.diagnosisSnapshot.count(),
+    recentPushCount,
+    lastLoginAt: user.lastLoginAt?.toISOString() || null,
+    nextActions: [
+      watchlistCount === 0 ? '先把 1 到 2 只重点股票加入自选观察。' : '午后刷新一次自选状态，确认关键位是否失效。',
+      recentPushCount === 0 ? '开启试用提醒，建立每天回看的理由。' : '对照最近触达内容，检查是否按提醒完成复盘。',
+      user.status === 'TRIAL' ? '在试用期内至少完成 3 次诊股和 3 次复盘。' : '继续关注热点板块轮动，避免把工具当成直接交易指令。',
+    ],
+    recentActivities: latestWatchlist.map((item) => `${item.stockName}：${item.status}，${item.reason || '继续观察。'}`),
+  }
+}
+
+async function buildUserProfileById(userId: bigint) {
+  const user = await prisma.appUser.findUnique({ where: { id: userId } })
+
+  if (!user) {
+    return null
+  }
+
+  return buildUserProfile(user.userCode)
+}
+
+function toWatchItem(item: {
+  stockCode: string
+  stockName: string
+  sectorName: string | null
+  status: string
+  statusKey: string
+  reason: string | null
+  advice: string | null
+}, index: number) {
+  return {
+    name: item.stockName,
+    code: item.stockCode,
+    sector: item.sectorName || '未分类',
+    status: item.status,
+    statusKey: item.statusKey,
+    reason: item.reason || '暂无说明',
+    advice: item.advice || '继续观察关键位变化。',
+    badge: getWatchBadge(index),
+  }
 }
 
 async function getLatestCandidateSnapshot() {
@@ -273,6 +390,18 @@ export async function getMarketOverview() {
   }
 }
 
+export async function getMarketHome() {
+  const demoData = await getWebDemoData()
+
+  return {
+    marketSummary: demoData.marketSummary,
+    marketTemperature: demoData.marketTemperature,
+    marketTags: demoData.marketTags,
+    sectors: demoData.sectors,
+    focusCandidateCount: demoData.candidates.filter((item) => item.level === '重点候选').length,
+  }
+}
+
 export async function getCandidateList() {
   const snapshot = await getLatestCandidateSnapshot()
 
@@ -287,50 +416,64 @@ export async function getCandidateList() {
   }))
 }
 
-export async function getWatchlistItems() {
+export async function getCandidateDetails() {
+  const demoData = await getWebDemoData()
+
+  return demoData.candidates
+}
+
+export async function getDiagnosisList(keyword?: string) {
+  const demoData = await getWebDemoData()
+  const diagnoses = Object.values(demoData.diagnoses)
+  const normalizedKeyword = keyword?.trim()
+
+  if (!normalizedKeyword) {
+    return diagnoses
+  }
+
+  return diagnoses.filter(
+    (item) =>
+      item.name.includes(normalizedKeyword) ||
+      item.code.includes(normalizedKeyword) ||
+      item.sector.includes(normalizedKeyword),
+  )
+}
+
+export async function getLatestReview() {
+  const demoData = await getWebDemoData()
+
+  return demoData.review
+}
+
+export async function getWatchlistItems(userId: bigint) {
   const rows = await prisma.watchlistItem.findMany({
+    where: { userId },
     orderBy: [{ sortOrder: 'asc' }, { id: 'asc' }],
   })
 
-  return rows.map((item, index) => ({
-    name: item.stockName,
-    code: item.stockCode,
-    sector: item.sectorName || '未分类',
-    status: item.status,
-    statusKey: item.statusKey,
-    reason: item.reason || '暂无说明',
-    advice: item.advice || '继续观察关键位变化。',
-    badge: getWatchBadge(index),
-  }))
-}
-
-async function getDefaultUserId() {
-  const user = await prisma.appUser.findFirst({
-    where: { userCode: 'trial_user_a' },
-    select: { id: true },
-  })
-
-  return user?.id ?? null
+  return rows.map((item, index) => toWatchItem(item, index))
 }
 
 export async function upsertWatchlistItem(input: {
+  userId: bigint
   stockCode: string
   stockName: string
   sectorName?: string
   reason?: string
   advice?: string
+  status?: string
+  statusKey?: string
 }) {
-  const userId = await getDefaultUserId()
   const existing = await prisma.watchlistItem.findFirst({
     where: {
-      userId,
+      userId: input.userId,
       stockCode: input.stockCode,
     },
   })
 
-  const total = await prisma.watchlistItem.count({ where: { userId } })
-  const status = total % 3 === 0 ? '继续观察' : total % 3 === 1 ? '转弱预警' : '结构转强'
-  const statusKey = total % 3 === 0 ? 'watching' : total % 3 === 1 ? 'warning' : 'stronger'
+  const total = await prisma.watchlistItem.count({ where: { userId: input.userId } })
+  const fallbackStatus = total % 3 === 0 ? '继续观察' : total % 3 === 1 ? '转弱预警' : '结构转强'
+  const fallbackStatusKey = total % 3 === 0 ? 'watching' : total % 3 === 1 ? 'warning' : 'stronger'
 
   const row = existing
     ? await prisma.watchlistItem.update({
@@ -338,37 +481,64 @@ export async function upsertWatchlistItem(input: {
         data: {
           stockName: input.stockName,
           sectorName: input.sectorName,
+          status: input.status || existing.status,
+          statusKey: input.statusKey || existing.statusKey,
           reason: input.reason || existing.reason,
           advice: input.advice || existing.advice,
         },
       })
     : await prisma.watchlistItem.create({
         data: {
-          userId,
+          userId: input.userId,
           stockCode: input.stockCode,
           stockName: input.stockName,
           sectorName: input.sectorName,
-          status,
-          statusKey,
+          status: input.status || fallbackStatus,
+          statusKey: input.statusKey || fallbackStatusKey,
           reason: input.reason || '新加入观察列表，等待后续承接确认。',
           advice: input.advice || '先观察关键位与量能变化。',
           sortOrder: total + 1,
         },
       })
 
-  return {
-    code: row.stockCode,
-    name: row.stockName,
-    sector: row.sectorName || '未分类',
-    status: row.status,
-    statusKey: row.statusKey,
-    reason: row.reason || '暂无说明',
-    advice: row.advice || '继续观察关键位变化。',
-  }
+  return toWatchItem(row, 0)
 }
 
-export async function deleteWatchlistItem(stockCode: string) {
-  const userId = await getDefaultUserId()
+export async function updateWatchlistItem(input: {
+  userId: bigint
+  stockCode: string
+  status?: string
+  statusKey?: string
+  reason?: string
+  advice?: string
+  sortOrder?: number
+}) {
+  const existing = await prisma.watchlistItem.findFirst({
+    where: {
+      userId: input.userId,
+      stockCode: input.stockCode,
+    },
+  })
+
+  if (!existing) {
+    return null
+  }
+
+  const updated = await prisma.watchlistItem.update({
+    where: { id: existing.id },
+    data: {
+      status: input.status || existing.status,
+      statusKey: input.statusKey || existing.statusKey,
+      reason: input.reason || existing.reason,
+      advice: input.advice || existing.advice,
+      sortOrder: input.sortOrder ?? existing.sortOrder,
+    },
+  })
+
+  return toWatchItem(updated, 0)
+}
+
+export async function deleteWatchlistItem(stockCode: string, userId: bigint) {
   const existing = await prisma.watchlistItem.findFirst({
     where: {
       userId,
@@ -383,4 +553,28 @@ export async function deleteWatchlistItem(stockCode: string) {
   await prisma.watchlistItem.delete({ where: { id: existing.id } })
 
   return { removed: true }
+}
+
+export async function loginTrialUser(input: { userCode?: string; nickname?: string; mobile?: string }) {
+  const user = await ensureUser(input)
+  const profile = await buildUserProfile(user.userCode)
+
+  if (!profile) {
+    throw new Error('用户初始化失败')
+  }
+
+  return {
+    profile,
+    ...(await createUserSession(user.id)),
+  }
+}
+
+export async function getUserProfile(userId: bigint) {
+  const profile = await buildUserProfileById(userId)
+
+  if (!profile) {
+    return null
+  }
+
+  return profile
 }
