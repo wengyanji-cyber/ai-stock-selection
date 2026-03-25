@@ -6,6 +6,7 @@ import { registerDataRoutes } from './modules/data/data.route.js'
 import { registerHealthRoutes } from './modules/health/health.route.js'
 import { registerJobRoutes } from './modules/jobs/jobs.route.js'
 import { registerMarketRoutes } from './modules/market/market.route.js'
+import { registerMembershipRoutes } from './modules/membership/membership.route.js'
 import { registerPushRoutes } from './modules/push/push.route.js'
 
 export function buildApp() {
@@ -25,6 +26,7 @@ export function buildApp() {
   app.register(registerJobRoutes)
   app.register(registerDataRoutes)
   app.register(registerPushRoutes)
+  app.register(registerMembershipRoutes)
 
   return app
 }

@@ -3,6 +3,7 @@ import { Navigate } from 'react-router-dom'
 import AccountPage from './pages/AccountPage'
 import CandidatesPage from './pages/CandidatesPage'
 import DiagnosisPage from './pages/DiagnosisPage'
+import HomePage from './pages/HomePage'
 import LoginPage from './pages/LoginPage'
 import MarketOverviewPage from './pages/MarketOverviewPage'
 import PricingPage from './pages/PricingPage'
@@ -20,7 +21,7 @@ export type WebRouteConfig = {
 }
 
 export const webRoutes: WebRouteConfig[] = [
-  { path: '/', label: '首页', element: <Navigate to="/market" replace /> },
+  { path: '/', label: '首页', element: <HomePage /> },
   { path: '/market', label: '市场首页', nav: true, element: <MarketOverviewPage /> },
   { path: '/candidates', label: '候选池', nav: true, element: <CandidatesPage /> },
   { path: '/stocks/:stockCode', label: '个股详情', nav: false, element: <StockDetailPage /> },
