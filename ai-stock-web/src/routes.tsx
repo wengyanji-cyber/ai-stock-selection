@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react'
-import { Navigate } from 'react-router-dom'
 import AccountPage from './pages/AccountPage'
 import CandidatesPage from './pages/CandidatesPage'
 import DiagnosisPage from './pages/DiagnosisPage'
@@ -10,6 +9,7 @@ import PricingPage from './pages/PricingPage'
 import RegisterPage from './pages/RegisterPage'
 import ReviewPage from './pages/ReviewPage'
 import StockDetailPage from './pages/StockDetailPage'
+import { SubscriptionPage } from './pages/SubscriptionPage'
 import TrialPage from './pages/TrialPage'
 import WatchPage from './pages/WatchPage'
 
@@ -33,4 +33,5 @@ export const webRoutes: WebRouteConfig[] = [
   { path: '/login', label: '登录注册', nav: true, element: <LoginPage /> },
   { path: '/register', label: '正式注册', nav: true, element: <RegisterPage /> },
   { path: '/account', label: '用户中心', nav: true, element: <AccountPage /> },
+  { path: '/subscription', label: '订阅管理', nav: true, element: <SubscriptionPage /> },
 ]
