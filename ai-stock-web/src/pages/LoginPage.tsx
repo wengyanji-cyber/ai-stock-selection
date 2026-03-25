@@ -5,7 +5,7 @@ import { loginUserAccount } from '../api/demoApi'
 function LoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
-  const [form, setForm] = useState({ userCode: 'trial_user_a', password: '12345678' })
+  const [form, setForm] = useState({ userCode: 'demo_user', password: 'demo123456' })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
 
@@ -22,7 +22,17 @@ function LoginPage() {
       const redirect = new URLSearchParams(location.search).get('redirect') || '/account'
       navigate(redirect)
     } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : '登录失败')
+      if (submitError instanceof Error) {
+        if (submitError.message.includes('401')) {
+          setError('账号或密码错误，请检查后重试。')
+        } else if (submitError.message.includes('404')) {
+          setError('账号不存在，请先注册或试用登录。')
+        } else {
+          setError(submitError.message)
+        }
+      } else {
+        setError('登录失败，请稍后重试。')
+      }
     } finally {
       setIsSubmitting(false)
     }
@@ -33,8 +43,8 @@ function LoginPage() {
       <section className="hero-panel">
         <div className="hero-copy">
           <span className="eyebrow">登录注册</span>
-          <h1>先建立信任，再进入产品和试用流程。</h1>
-          <p>注册之后可以保存自选、同步诊股历史、查看试用进度和续用状态。</p>
+          <h1>欢迎回来！</h1>
+          <p>登录后可以保存自选股票、同步诊股历史、查看试用进度和续用状态。</p>
         </div>
       </section>
       <section className="panel-card form-panel">
@@ -42,19 +52,27 @@ function LoginPage() {
         <div className="stack-list">
           <label className="form-field">
             <span>用户编码</span>
-            <input value={form.userCode} onChange={(event) => setForm((current) => ({ ...current, userCode: event.target.value }))} placeholder="例如：trial_user_a" />
+            <input value={form.userCode} onChange={(event) => setForm((current) => ({ ...current, userCode: event.target.value }))} placeholder="请输入用户编码" />
           </label>
           <label className="form-field">
             <span>密码</span>
             <input type="password" value={form.password} onChange={(event) => setForm((current) => ({ ...current, password: event.target.value }))} placeholder="请输入密码" />
           </label>
           <button className="primary-button" type="button" onClick={() => void handleSubmit()} disabled={isSubmitting}>
-            {isSubmitting ? '登录中...' : '登录并进入用户中心'}
+            {isSubmitting ? '登录中...' : '登录'}
           </button>
-          <button className="secondary-button" type="button" onClick={() => navigate('/register')} disabled={isSubmitting}>
-            去正式注册
-          </button>
-          {error ? <div className="note-card error-card">登录接口异常：{error}</div> : null}
+          <div className="action-row">
+            <button className="secondary-button" type="button" onClick={() => navigate('/trial')} disabled={isSubmitting}>
+              试用登录
+            </button>
+            <button className="secondary-button" type="button" onClick={() => navigate('/register')} disabled={isSubmitting}>
+              注册新账号
+            </button>
+          </div>
+          {error ? <div className="note-card error-card">{error}</div> : null}
+          <div className="note-card">
+            <strong>💡 提示：</strong>演示账号 <code>demo_user</code> / <code>demo123456</code>
+          </div>
         </div>
       </section>
     </div>

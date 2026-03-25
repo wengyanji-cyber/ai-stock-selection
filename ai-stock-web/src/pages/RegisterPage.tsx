@@ -13,12 +13,35 @@ function RegisterPage() {
     setIsSubmitting(true)
     setError('')
 
+    // 简单验证
+    if (!form.userCode?.trim()) {
+      setError('请填写用户编码，建议使用英文或数字组合。')
+      setIsSubmitting(false)
+      return
+    }
+
+    if (!form.password || form.password.length < 6) {
+      setError('密码长度至少 6 位，请重新设置。')
+      setIsSubmitting(false)
+      return
+    }
+
     try {
       await registerUserAccount(form)
       const redirect = new URLSearchParams(location.search).get('redirect') || '/account'
       navigate(redirect)
     } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : '注册失败')
+      if (submitError instanceof Error) {
+        if (submitError.message.includes('409')) {
+          setError('该账号已被注册，请换一个试试。')
+        } else if (submitError.message.includes('400')) {
+          setError('密码格式不符合要求，请使用字母 + 数字组合。')
+        } else {
+          setError(submitError.message)
+        }
+      } else {
+        setError('注册失败，请稍后重试。')
+      }
     } finally {
       setIsSubmitting(false)
     }
@@ -29,36 +52,39 @@ function RegisterPage() {
       <section className="hero-panel">
         <div className="hero-copy">
           <span className="eyebrow">正式注册</span>
-          <h1>从试用体验进入正式账号体系。</h1>
-          <p>注册后可以长期保存观察、自选、诊股历史，并为后续订阅与触达打基础。</p>
+          <h1>创建你的专属账号</h1>
+          <p>注册后可以长期保存观察列表、诊股历史，并跟踪试用进度和续用状态。</p>
         </div>
       </section>
       <section className="panel-card form-panel">
-        <div className="section-kicker">注册账号</div>
+        <div className="section-kicker">填写信息</div>
         <div className="stack-list">
           <label className="form-field">
-            <span>用户编码</span>
-            <input value={form.userCode} onChange={(event) => setForm((current) => ({ ...current, userCode: event.target.value }))} placeholder="例如：alpha_user_01" />
+            <span>用户编码 *</span>
+            <input value={form.userCode} onChange={(event) => setForm((current) => ({ ...current, userCode: event.target.value }))} placeholder="建议使用英文或数字，如 alpha_user_01" />
           </label>
           <label className="form-field">
             <span>昵称</span>
-            <input value={form.nickname} onChange={(event) => setForm((current) => ({ ...current, nickname: event.target.value }))} placeholder="例如：短线研究员" />
+            <input value={form.nickname} onChange={(event) => setForm((current) => ({ ...current, nickname: event.target.value }))} placeholder="怎么称呼你，如 短线研究员" />
           </label>
           <label className="form-field">
             <span>手机号</span>
-            <input value={form.mobile} onChange={(event) => setForm((current) => ({ ...current, mobile: event.target.value }))} />
+            <input value={form.mobile} onChange={(event) => setForm((current) => ({ ...current, mobile: event.target.value }))} placeholder="选填，用于接收重要通知" />
           </label>
           <label className="form-field">
-            <span>密码</span>
-            <input type="password" value={form.password} onChange={(event) => setForm((current) => ({ ...current, password: event.target.value }))} />
+            <span>密码 *</span>
+            <input type="password" value={form.password} onChange={(event) => setForm((current) => ({ ...current, password: event.target.value }))} placeholder="至少 6 位，建议字母 + 数字组合" />
           </label>
           <button className="primary-button" type="button" onClick={() => void handleSubmit()} disabled={isSubmitting}>
             {isSubmitting ? '注册中...' : '注册并登录'}
           </button>
           <button className="secondary-button" type="button" onClick={() => navigate('/login')} disabled={isSubmitting}>
-            已有账号，去登录
+            已有账号？去登录
           </button>
-          {error ? <div className="note-card error-card">注册接口异常：{error}</div> : null}
+          {error ? <div className="note-card error-card">{error}</div> : null}
+          <div className="note-card">
+            <strong>💡 提示：</strong>注册即代表同意《用户服务协议》和《隐私政策》
+          </div>
         </div>
       </section>
     </div>
