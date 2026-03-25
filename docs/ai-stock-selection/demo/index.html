@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI选股演示版</title>
+    <style>
+      :root {
+        --panel: rgba(255, 251, 244, 0.82);
+        --panel-strong: rgba(255, 248, 238, 0.95);
+        --ink: #18261f;
+        --ink-soft: #44534d;
+        --line: rgba(24, 38, 31, 0.12);
+        --brand: #0f5c4d;
+        --brand-soft: #d7ebe4;
+        --accent: #c66a2b;
+        --accent-soft: #f6dfcf;
+        --warn: #a6462b;
+        --warn-soft: #f4d6ca;
+        --shadow: 0 24px 60px rgba(62, 43, 16, 0.14);
+        --radius-xl: 28px;
+        --radius-lg: 22px;
+        --radius-md: 16px;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at top left, rgba(198, 106, 43, 0.18), transparent 28%),
+          radial-gradient(circle at 80% 18%, rgba(15, 92, 77, 0.18), transparent 24%),
+          linear-gradient(180deg, #f8f2e7 0%, #efe5d5 100%);
+        font-family: "Avenir Next", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      }
+
+      .shell { max-width: 1440px; margin: 0 auto; padding: 24px; }
+
+      .hero {
+        position: relative;
+        overflow: hidden;
+        padding: 28px;
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        border-radius: var(--radius-xl);
+        background:
+          linear-gradient(135deg, rgba(255, 251, 244, 0.96), rgba(246, 235, 219, 0.9)),
+          linear-gradient(135deg, rgba(15, 92, 77, 0.06), rgba(198, 106, 43, 0.08));
+        box-shadow: var(--shadow);
+      }
+
+      .hero::after {
+        content: "";
+        position: absolute;
+        right: -60px;
+        top: -70px;
+        width: 220px;
+        height: 220px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(15, 92, 77, 0.2), transparent 68%);
+      }
+
+      .hero-top { display: flex; justify-content: space-between; gap: 24px; align-items: flex-start; }
+
+      .eyebrow {
+        display: inline-flex;
+        gap: 10px;
+        align-items: center;
+        padding: 8px 14px;
+        border-radius: 999px;
+        background: rgba(15, 92, 77, 0.09);
+        color: var(--brand);
+        font-size: 12px;
+        letter-spacing: 0.08em;
+      }
+
+      h1 {
+        margin: 16px 0 10px;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: clamp(34px, 5vw, 58px);
+        line-height: 1.02;
+        letter-spacing: -0.03em;
+        max-width: 820px;
+      }
+
+      .hero p { margin: 0; max-width: 780px; color: var(--ink-soft); font-size: 16px; line-height: 1.75; }
+
+      .hero-metrics { display: grid; grid-template-columns: repeat(3, minmax(120px, 1fr)); gap: 14px; min-width: 360px; }
+
+      .metric {
+        padding: 16px;
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.56);
+        border: 1px solid rgba(24, 38, 31, 0.08);
+        backdrop-filter: blur(8px);
+      }
+
+      .metric-label { font-size: 12px; color: var(--ink-soft); }
+      .metric-value { margin-top: 8px; font-size: 26px; font-weight: 700; }
+      .hero-tags, .tabbar, .meta-row, .action-row, .toolbar, .statline { display: flex; flex-wrap: wrap; gap: 10px; }
+      .hero-tags { margin-top: 22px; }
+      .tag, .toolbar-chip {
+        padding: 10px 14px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.75);
+        border: 1px solid rgba(24, 38, 31, 0.1);
+        color: var(--ink);
+        font-size: 13px;
+        text-decoration: none;
+      }
+
+      .toolbar-chip { cursor: pointer; color: var(--ink-soft); }
+      .toolbar-chip.active { background: var(--brand); color: #fff; border-color: transparent; }
+
+      .tabbar { margin: 28px 0 18px; }
+      .tab {
+        border: 0;
+        border-radius: 999px;
+        padding: 12px 18px;
+        background: rgba(255, 255, 255, 0.65);
+        color: var(--ink-soft);
+        font-size: 14px;
+        cursor: pointer;
+      }
+      .tab.active { background: var(--ink); color: #fff; transform: translateY(-1px); }
+      .panel { display: none; animation: fade 260ms ease; }
+      .panel.active { display: block; }
+      .grid { display: grid; gap: 18px; }
+      .grid.two { grid-template-columns: 1.25fr 0.95fr; }
+      .card {
+        padding: 22px;
+        border-radius: var(--radius-lg);
+        background: var(--panel);
+        border: 1px solid rgba(255, 255, 255, 0.52);
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(12px);
+      }
+      .card h2, .card h3, .card h4 { margin: 0; }
+      .card-title-row, .item-head { display: flex; justify-content: space-between; gap: 16px; align-items: center; }
+      .item-head { align-items: flex-start; margin-bottom: 12px; }
+      .card-kicker {
+        font-size: 12px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--ink-soft);
+        margin-bottom: 10px;
+      }
+      .summary-text { margin-top: 12px; font-size: 20px; line-height: 1.6; }
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border-radius: 999px;
+        font-size: 12px;
+        white-space: nowrap;
+      }
+      .badge.brand { background: var(--brand-soft); color: var(--brand); }
+      .badge.accent { background: var(--accent-soft); color: var(--accent); }
+      .badge.warn { background: var(--warn-soft); color: var(--warn); }
+      .sector-list, .candidate-list, .watch-list, .review-list, .risk-list { display: grid; gap: 14px; margin-top: 16px; }
+      .sector-item, .candidate-item, .watch-item, .review-item, .risk-item {
+        padding: 18px;
+        border-radius: var(--radius-md);
+        background: var(--panel-strong);
+        border: 1px solid var(--line);
+      }
+      .sector-item p, .candidate-item p, .watch-item p, .review-item p, .risk-item p, .tiny, .meta {
+        margin: 0;
+        color: var(--ink-soft);
+        line-height: 1.7;
+      }
+      .item-title { font-size: 18px; font-weight: 700; }
+      .point-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-top: 16px; }
+      .point { padding: 14px; border-radius: 14px; background: rgba(15, 92, 77, 0.06); }
+      .point-label { font-size: 12px; color: var(--ink-soft); }
+      .point-value { margin-top: 6px; font-size: 18px; font-weight: 700; }
+      .split { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
+      .list { margin: 12px 0 0; padding-left: 18px; color: var(--ink-soft); }
+      .list li { margin: 8px 0; }
+      .search-box { display: grid; grid-template-columns: 1fr auto; gap: 12px; margin-bottom: 16px; }
+      .search-box input, .filter-select {
+        width: 100%;
+        padding: 16px 18px;
+        border-radius: 16px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.85);
+        font-size: 15px;
+        color: var(--ink);
+      }
+      .btn, .ghost-btn {
+        padding: 16px 20px;
+        border-radius: 16px;
+        font-size: 15px;
+        cursor: pointer;
+      }
+      .btn { border: 0; background: var(--brand); color: #fff; }
+      .ghost-btn { border: 1px solid var(--line); background: rgba(255, 255, 255, 0.75); color: var(--ink); padding: 11px 14px; }
+      .filters { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 16px 0 10px; }
+      .footer-note {
+        margin-top: 22px;
+        padding: 18px 20px;
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.64);
+        color: var(--ink-soft);
+        font-size: 13px;
+        line-height: 1.8;
+      }
+      .stat-pill {
+        padding: 10px 12px;
+        border-radius: 14px;
+        background: rgba(15, 92, 77, 0.08);
+        color: var(--ink-soft);
+        font-size: 13px;
+      }
+      .empty-state {
+        padding: 28px 18px;
+        border: 1px dashed var(--line);
+        border-radius: 18px;
+        text-align: center;
+        color: var(--ink-soft);
+        background: rgba(255, 255, 255, 0.45);
+      }
+
+      @keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+      @media (max-width: 1100px) {
+        .hero-top, .grid.two, .split, .filters, .point-grid { grid-template-columns: 1fr; display: grid; }
+        .hero-metrics { min-width: 0; width: 100%; }
+      }
+
+      @media (max-width: 768px) {
+        .shell { padding: 14px; }
+        .hero, .card { padding: 18px; }
+        .search-box { grid-template-columns: 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <section class="hero">
+        <div class="hero-top">
+          <div>
+            <div class="eyebrow">AI短线投研助手 · docs 演示版</div>
+            <h1>把热点、候选、点位和风险，压缩成普通投资者能直接执行的页面。</h1>
+            <p>这是一个写在 docs 下的静态演示版本，目标不是还原真实行情，而是让团队直接看到首页、候选池、个股诊断、自选观察和复盘五个核心体验如何组织。</p>
+            <div class="hero-tags" id="hero-tags"></div>
+            <div class="action-row" style="margin-top: 18px;">
+              <a class="toolbar-chip" href="trial.html">试用开通</a>
+              <a class="toolbar-chip" href="pricing.html">订阅方案</a>
+              <a class="toolbar-chip" href="login.html">登录注册</a>
+              <a class="toolbar-chip" href="account.html">用户中心</a>
+              <a class="toolbar-chip" href="ops.html">运营后台</a>
+            </div>
+          </div>
+          <div class="hero-metrics">
+            <div class="metric"><div class="metric-label">今日市场温度</div><div class="metric-value" id="metric-temperature">中高</div></div>
+            <div class="metric"><div class="metric-label">重点板块</div><div class="metric-value" id="metric-sector-count">2个</div></div>
+            <div class="metric"><div class="metric-label">核心候选</div><div class="metric-value" id="metric-core-count">3只</div></div>
+          </div>
+        </div>
+      </section>
+
+      <div class="tabbar">
+        <button class="tab active" data-tab="home">首页</button>
+        <button class="tab" data-tab="candidates">候选池</button>
+        <button class="tab" data-tab="diagnosis">个股诊断</button>
+        <button class="tab" data-tab="watch">自选观察</button>
+        <button class="tab" data-tab="review">复盘</button>
+      </div>
+
+      <section class="panel active" id="panel-home"></section>
+      <section class="panel" id="panel-candidates"></section>
+      <section class="panel" id="panel-diagnosis"></section>
+      <section class="panel" id="panel-watch"></section>
+      <section class="panel" id="panel-review"></section>
+    </div>
+
+    <script src="data.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>

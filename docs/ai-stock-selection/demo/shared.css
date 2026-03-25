@@ -1,0 +1,242 @@
+:root {
+  --ink: #18241d;
+  --ink-soft: #52615b;
+  --brand: #0f5c4e;
+  --brand-soft: #ddeee7;
+  --accent: #c17034;
+  --accent-soft: #f5e1d2;
+  --warn: #a24d32;
+  --warn-soft: #f6ddd3;
+  --line: rgba(24, 36, 29, 0.12);
+  --panel: rgba(255, 250, 243, 0.94);
+  --panel-strong: rgba(255, 247, 236, 0.98);
+  --shadow: 0 24px 62px rgba(75, 47, 18, 0.14);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  color: var(--ink);
+  background:
+    radial-gradient(circle at top left, rgba(193, 112, 52, 0.18), transparent 28%),
+    radial-gradient(circle at 82% 14%, rgba(15, 92, 78, 0.14), transparent 24%),
+    linear-gradient(180deg, #fbf3e8 0%, #efe3d2 100%);
+  font-family: "Avenir Next", "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
+.shell {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.nav {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.brand-wordmark {
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.nav-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.nav-links a {
+  padding: 10px 14px;
+  border-radius: 999px;
+  text-decoration: none;
+  color: var(--ink-soft);
+  background: rgba(255, 255, 255, 0.74);
+  border: 1px solid rgba(24, 36, 29, 0.08);
+}
+
+.nav-links a.current {
+  background: var(--ink);
+  color: #fff;
+  border-color: transparent;
+}
+
+.hero,
+.card {
+  border-radius: 28px;
+  box-shadow: var(--shadow);
+}
+
+.hero {
+  padding: 30px;
+  background: linear-gradient(135deg, rgba(255, 251, 246, 0.97), rgba(247, 236, 221, 0.94));
+}
+
+.card {
+  padding: 24px;
+  background: var(--panel);
+}
+
+.eyebrow {
+  display: inline-flex;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(15, 92, 78, 0.08);
+  color: var(--brand);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+}
+
+.hero h1,
+h1.page-title {
+  margin: 16px 0 12px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(34px, 5vw, 58px);
+  line-height: 1.04;
+}
+
+.hero p,
+.sub,
+.muted,
+.notice,
+.item p,
+.faq-item p {
+  color: var(--ink-soft);
+  line-height: 1.8;
+}
+
+.hero-tags,
+.cta-row,
+.meta-row,
+.badge-row,
+.feature-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.hero-tags,
+.meta-row,
+.feature-list {
+  margin-top: 18px;
+}
+
+.tag,
+.badge,
+.pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 10px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+}
+
+.tag,
+.pill {
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(24, 36, 29, 0.1);
+}
+
+.badge.brand {
+  background: var(--brand-soft);
+  color: var(--brand);
+}
+
+.badge.accent {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.badge.warn {
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+
+.btn,
+.ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px 18px;
+  border-radius: 16px;
+  text-decoration: none;
+  font-size: 15px;
+}
+
+.btn {
+  background: var(--brand);
+  color: #fff;
+}
+
+.ghost {
+  background: rgba(255, 255, 255, 0.82);
+  color: var(--ink);
+  border: 1px solid var(--line);
+}
+
+.kicker,
+.panel-title {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.section-title {
+  margin: 10px 0 0;
+}
+
+.list,
+.panel-list,
+.step-list,
+.faq-grid,
+.stats,
+.table-grid {
+  display: grid;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.item,
+.panel-item,
+.step,
+.faq-item,
+.stat,
+.data-card {
+  padding: 16px;
+  border-radius: 18px;
+  background: var(--panel-strong);
+  border: 1px solid var(--line);
+}
+
+.item-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.notice {
+  margin-top: 18px;
+  padding: 18px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.76);
+  font-size: 13px;
+}
+
+@media (max-width: 980px) {
+  .shell {
+    padding: 18px;
+  }
+
+  .nav {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

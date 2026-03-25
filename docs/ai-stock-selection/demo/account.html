@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI选股用户中心页</title>
+    <link rel="stylesheet" href="shared.css" />
+    <style>
+      .layout { display: grid; grid-template-columns: 0.92fr 1.08fr; gap: 18px; margin-top: 18px; }
+      .stats { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px; margin-top: 18px; }
+      .stat {
+        padding: 16px; border-radius: 18px; background: var(--panel-strong); border: 1px solid var(--line);
+      }
+      .stat-label { font-size: 12px; color: var(--ink-soft); }
+      .stat-value { margin-top: 8px; font-size: 28px; font-weight: 700; }
+
+      .progress {
+        margin-top: 18px; padding: 18px; border-radius: 20px; background: rgba(255,255,255,0.76); border: 1px solid var(--line);
+      }
+      .progress-bar {
+        width: 100%; height: 10px; border-radius: 999px; background: rgba(24,36,29,0.08); overflow: hidden; margin-top: 12px;
+      }
+      .progress-fill { width: 64%; height: 100%; background: linear-gradient(90deg, #0f5c4e, #c06f34); }
+
+      @media (max-width: 980px) {
+        .layout, .stats { grid-template-columns: 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <div class="nav">
+        <div><strong>AI短线投研助手</strong></div>
+        <div class="nav-links">
+          <a href="index.html">投研演示页</a>
+          <a href="trial.html">试用开通页</a>
+          <a href="pricing.html">订阅方案页</a>
+          <a href="login.html">登录注册页</a>
+        </div>
+      </div>
+
+              <div class="brand-wordmark">AI短线投研助手</div>
+        <div class="eyebrow">用户中心 Demo</div>
+        <h1>把“每天回来打开”的理由做成清晰的个人视图。</h1>
+        <p>这个页面模拟的是用户登录后的个人中心。重点不是复杂会员系统，而是把试用进度、观察列表、最近诊股、下一步动作这些最能支撑留存的内容放到一个页面里。</p>
+        <div class="hero-tags">
+          <span class="tag">试用第 9 天</span>
+                <a class="current" href="account.html">用户中心页</a>
+                <a href="ops.html">运营后台页</a>
+          <span class="tag">最近 7 天诊股 18 次</span>
+          <span class="tag">下一步：续用或升级</span>
+        </div>
+      </section>
+
+      <section class="layout">
+        <div class="card">
+          <div class="kicker">账号状态</div>
+          <h2>你的试用正在形成使用习惯</h2>
+          <p class="sub">页面要回答三个问题：你现在处于哪个阶段、最近最常看什么、下一步该做什么。</p>
+
+          <div class="stats">
+            <div class="stat">
+              <div class="stat-label">试用剩余天数</div>
+              <div class="stat-value">5</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">观察列表</div>
+              <div class="stat-value">6</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">最近7天诊股次数</div>
+              <div class="stat-value">18</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">最常用模块</div>
+              <div class="stat-value">诊股</div>
+            </div>
+          </div>
+
+          <div class="progress">
+            <div class="kicker">试用进度</div>
+            <p class="sub">你已经体验到盘前一句话、候选池、诊股和自选观察四个核心模块，当前更适合继续观察自选股状态变化，再决定是否续用。</p>
+            <div class="progress-bar"><div class="progress-fill"></div></div>
+          </div>
+
+          <div class="list">
+            <div class="item">
+              <div class="item-head">
+                <strong>建议下一步</strong>
+                <span class="badge brand">优先动作</span>
+              </div>
+              <p>把今天重点候选里的 2 只股票加入观察列表，并在午后再看一次状态变化。</p>
+            </div>
+            <div class="item">
+              <div class="item-head">
+                <strong>续用提示</strong>
+                <span class="badge accent">第9天</span>
+              </div>
+              <p>如果你已经形成固定查看习惯，下一阶段重点看标准版是否能持续提供足够清晰的候选和诊股价值。</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="kicker">最近活动</div>
+          <h2>用户中心里最能支撑留存的三块信息</h2>
+
+          <div class="list">
+            <div class="item">
+              <div class="item-head">
+                <strong>最近诊股</strong>
+                <span class="badge brand">高频使用</span>
+              </div>
+              <p>示例科技：仍偏强，但位置偏高，建议等待回踩确认。</p>
+              <p>示例智能：板块仍热，但量能不足，转弱预警。</p>
+            </div>
+
+            <div class="item">
+              <div class="item-head">
+                <strong>观察列表状态</strong>
+                <span class="badge warn">1只预警</span>
+              </div>
+              <p>6 只观察股中，1 只转弱预警，2 只继续观察，1 只结构转强，其余保持中性状态。</p>
+            </div>
+
+            <div class="item">
+              <div class="item-head">
+                <strong>你最常看的内容</strong>
+                <span class="badge accent">行为特征</span>
+              </div>
+              <p>过去 7 天，你最常打开的是个股诊断，其次是候选池。说明你更关注“能不能继续看”而不是只看盘前摘要。</p>
+            </div>
+
+            <div class="item">
+              <div class="item-head">
+                <strong>产品边界提示</strong>
+                <span class="badge brand">持续露出</span>
+              </div>
+              <p>用户中心也应持续保留“辅助判断工具”的认知，不做代客操作，不承诺收益，不把留存建立在刺激式话术上。</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </body>
+</html>

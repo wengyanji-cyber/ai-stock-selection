@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI选股运营后台概览页</title>
+    <link rel="stylesheet" href="shared.css" />
+    <style>
+      .hero p {
+        max-width: 880px;
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: 1.08fr 0.92fr;
+        gap: 18px;
+        margin-top: 18px;
+      }
+
+      .stats {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+
+      .stat-value {
+        margin-top: 8px;
+        font-size: 28px;
+        font-weight: 700;
+      }
+
+      .kanban {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+        margin-top: 18px;
+      }
+
+      .column {
+        padding: 16px;
+        border-radius: 18px;
+        background: var(--panel-strong);
+        border: 1px solid var(--line);
+      }
+
+      .column h3 {
+        margin: 0;
+      }
+
+      .column .list {
+        margin-top: 12px;
+      }
+
+      .mini {
+        font-size: 12px;
+        color: var(--ink-soft);
+      }
+
+      .funnel {
+        display: grid;
+        gap: 12px;
+        margin-top: 18px;
+      }
+
+      .funnel-row {
+        display: grid;
+        grid-template-columns: 180px 1fr 90px;
+        gap: 12px;
+        align-items: center;
+      }
+
+      .bar {
+        height: 14px;
+        border-radius: 999px;
+        background: rgba(24, 36, 29, 0.08);
+        overflow: hidden;
+      }
+
+      .fill {
+        height: 100%;
+        border-radius: 999px;
+        background: linear-gradient(90deg, #0f5c4e, #c17034);
+      }
+
+      .table-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      @media (max-width: 980px) {
+        .layout,
+        .stats,
+        .kanban,
+        .table-grid,
+        .funnel-row {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <div class="nav">
+        <div class="brand-wordmark">AI短线投研助手</div>
+        <div class="nav-links">
+          <a href="index.html">投研演示页</a>
+          <a href="trial.html">试用开通页</a>
+          <a href="pricing.html">订阅方案页</a>
+          <a href="login.html">登录注册页</a>
+          <a href="account.html">用户中心页</a>
+          <a class="current" href="ops.html">运营后台页</a>
+        </div>
+      </div>
+
+      <section class="hero">
+        <div class="eyebrow">运营后台 Demo</div>
+        <h1>把内容生产、试用转化、留存预警和合规巡检放进同一张运营总览里。</h1>
+        <p>这张页面补的是内部视角。前面的 demo 主要展示用户怎么进入、试用、订阅和留存；这一页则展示团队每天如何管理内容节奏、看漏斗、看预警、看用户反馈，以及如何控制合规表达不跑偏。</p>
+        <div class="hero-tags">
+          <span class="tag">今日新增试用 43</span>
+          <span class="tag">试用转订阅 18.6%</span>
+          <span class="tag">高频反馈 3 类</span>
+          <span class="tag">高风险表述 0 条</span>
+        </div>
+        <div class="cta-row">
+          <a class="ghost" href="index.html">返回产品演示主页面</a>
+          <a class="ghost" href="account.html">查看用户留存视图</a>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="kicker">今日运营总览</div>
+        <h2 class="section-title">先看节奏，再看问题，再决定今天要推什么内容</h2>
+        <div class="stats">
+          <div class="stat">
+            <div class="mini">新增注册</div>
+            <div class="stat-value">78</div>
+          </div>
+          <div class="stat">
+            <div class="mini">新增试用</div>
+            <div class="stat-value">43</div>
+          </div>
+          <div class="stat">
+            <div class="mini">今日续费单</div>
+            <div class="stat-value">8</div>
+          </div>
+          <div class="stat">
+            <div class="mini">高风险咨询</div>
+            <div class="stat-value">2</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="layout">
+        <div class="card">
+          <div class="kicker">试用转化漏斗</div>
+          <h2 class="section-title">页面链路不是越长越好，关键是每一步都能解释价值</h2>
+          <div class="funnel">
+            <div class="funnel-row">
+              <strong>访问 trial 页</strong>
+              <div class="bar"><div class="fill" style="width: 100%"></div></div>
+              <span>100%</span>
+            </div>
+            <div class="funnel-row">
+              <strong>完成注册</strong>
+              <div class="bar"><div class="fill" style="width: 61%"></div></div>
+              <span>61%</span>
+            </div>
+            <div class="funnel-row">
+              <strong>体验 3 个核心模块</strong>
+              <div class="bar"><div class="fill" style="width: 46%"></div></div>
+              <span>46%</span>
+            </div>
+            <div class="funnel-row">
+              <strong>第 7 天仍回访</strong>
+              <div class="bar"><div class="fill" style="width: 29%"></div></div>
+              <span>29%</span>
+            </div>
+            <div class="funnel-row">
+              <strong>试用后订阅</strong>
+              <div class="bar"><div class="fill" style="width: 18.6%"></div></div>
+              <span>18.6%</span>
+            </div>
+          </div>
+          <div class="notice">运营判断重点：现在卡点不在“访问量”，而在“试用后前三天是否建立日常打开习惯”。所以今天优先补盘前一句话触达和午后状态提醒，而不是继续堆拉新文案。</div>
+        </div>
+
+        <div class="card">
+          <div class="kicker">合规巡检</div>
+          <h2 class="section-title">把危险表达挡在运营后台，而不是等外部投诉后再补救</h2>
+          <div class="list">
+            <div class="item">
+              <div class="item-head">
+                <strong>客服会话抽检</strong>
+                <span class="badge brand">已通过</span>
+              </div>
+              <p>今日抽检 26 段会话，未出现“稳赚”“高胜率”“带单”类表达。</p>
+            </div>
+            <div class="item">
+              <div class="item-head">
+                <strong>营销素材扫描</strong>
+                <span class="badge accent">1 条待改</span>
+              </div>
+              <p>一条推广文案使用了“抓住今天机会”措辞，建议改成“今日重点方向”。</p>
+            </div>
+            <div class="item">
+              <div class="item-head">
+                <strong>高风险需求预警</strong>
+                <span class="badge warn">2 条</span>
+              </div>
+              <p>两位用户提到“能不能直接告诉我买卖点并提醒交易”，需要用标准话术明确边界。</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="kicker">内容与用户反馈</div>
+        <h2 class="section-title">运营后台最该服务的是“明天发什么”和“为什么有人留下”</h2>
+        <div class="kanban">
+          <div class="column">
+            <h3>明日内容计划</h3>
+            <div class="list">
+              <div class="item">
+                <strong>盘前一句话</strong>
+                <p>围绕算力链分化与机器人修复，输出 1 条主方向和 1 条风险提醒。</p>
+              </div>
+              <div class="item">
+                <strong>候选池重点股</strong>
+                <p>保留 3 只强逻辑标的，减少噪音股，保证解释一致性。</p>
+              </div>
+            </div>
+          </div>
+          <div class="column">
+            <h3>高频用户反馈</h3>
+            <div class="list">
+              <div class="item">
+                <strong>反馈 1</strong>
+                <p>“诊股很清楚，但希望看到自选股的状态变化更直观。”</p>
+              </div>
+              <div class="item">
+                <strong>反馈 2</strong>
+                <p>“盘后复盘有价值，但想知道第二天该优先看哪两只。”</p>
+              </div>
+            </div>
+          </div>
+          <div class="column">
+            <h3>今日动作建议</h3>
+            <div class="list">
+              <div class="item">
+                <strong>产品侧</strong>
+                <p>强化 account 页的“观察列表状态变化”表达，减少纯文字堆叠。</p>
+              </div>
+              <div class="item">
+                <strong>运营侧</strong>
+                <p>把第 5 天和第 9 天的续用提醒话术再收敛，避免过早硬推订阅。</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="kicker">团队视角补充</div>
+        <h2 class="section-title">这页为什么值得放进 demo</h2>
+        <div class="table-grid">
+          <div class="data-card">
+            <strong>给内部评审看</strong>
+            <p class="muted">说明项目不只是一个“会说结论”的前台页面，而是有完整试用、转化、反馈和风控闭环。</p>
+          </div>
+          <div class="data-card">
+            <strong>给产品和运营对齐看</strong>
+            <p class="muted">把“日更内容怎么排”“用户为什么留”“哪些说法不能碰”放到同一视图里，更容易形成统一口径。</p>
+          </div>
+        </div>
+      </section>
+    </div>
+  </body>
+</html>

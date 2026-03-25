@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI选股试用开通页</title>
+    <link rel="stylesheet" href="shared.css" />
+    <style>
+      .grid {
+        display: grid;
+        grid-template-columns: 1.08fr 0.92fr;
+        gap: 18px;
+        margin-top: 18px;
+      }
+
+      .check-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 18px;
+      }
+
+      .check {
+        width: calc(50% - 5px);
+        padding: 14px;
+        border-radius: 16px;
+        background: var(--panel-strong);
+        border: 1px solid var(--line);
+      }
+
+      .label {
+        display: inline-flex;
+        padding: 8px 12px;
+        border-radius: 999px;
+        font-size: 12px;
+      }
+      .label.brand { background: var(--brand-soft); color: var(--brand); }
+      .label.accent { background: var(--accent-soft); color: var(--accent); }
+      .label.warn { background: var(--warn-soft); color: var(--warn); }
+
+      .step {
+        display: grid;
+        grid-template-columns: 44px 1fr;
+        gap: 12px;
+        align-items: start;
+        padding: 16px;
+        border-radius: 18px;
+        background: var(--panel-strong);
+        border: 1px solid var(--line);
+      }
+
+      .step-num {
+        width: 44px;
+        height: 44px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(13, 90, 75, 0.1);
+        color: var(--brand);
+        font-weight: 700;
+      }
+
+      .note {
+        margin-top: 18px;
+        padding: 18px;
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.7);
+        color: var(--ink-soft);
+        font-size: 13px;
+        line-height: 1.8;
+      }
+
+      @media (max-width: 980px) {
+        .grid { grid-template-columns: 1fr; }
+        .check { width: 100%; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <div class="nav">
+        <div class="brand-wordmark">AI短线投研助手</div>
+        <div class="nav-links">
+          <a href="index.html">投研演示页</a>
+          <a class="current" href="trial.html">试用开通页</a>
+          <a href="pricing.html">订阅方案页</a>
+          <a href="login.html">登录注册页</a>
+          <a href="account.html">用户中心页</a>
+          <a href="ops.html">运营后台页</a>
+        </div>
+      </div>
+
+      <section class="hero">
+        <div class="eyebrow">试用转化场景 Demo</div>
+        <h1>先给用户 14 天结构化体验，再决定他会不会留下。</h1>
+        <p>这个页面模拟的是种子用户试用开通场景。重点不是刺激性转化，而是把试用权益、使用路径、反馈动作和合规边界讲清楚，让用户知道自己将看到什么、怎么体验、为什么值得持续使用。</p>
+        <div class="hero-tags">
+          <span class="tag">14天深度试用</span>
+          <span class="tag">盘前一句话 + 候选池 + 诊股</span>
+          <span class="tag">不承诺收益</span>
+          <span class="tag">强调结构化判断</span>
+        </div>
+        <div class="cta-row">
+          <a class="btn" href="pricing.html">查看试用后订阅方案</a>
+          <a class="ghost" href="index.html">先看产品主页面</a>
+        </div>
+      </section>
+
+      <section class="grid">
+        <div class="card">
+          <div class="kicker">试用期间你能得到什么</div>
+          <h2>不是给一堆信息，而是给少量高质量判断</h2>
+          <p class="sub">试用期重点让用户形成三个习惯：盘前先看方向、盘中有问题先诊股、盘后回头看复盘。这样才能真正验证产品有没有持续价值。</p>
+          <div class="check-list">
+            <div class="check">每日盘前一句话：今天方向、重点板块、主要风险。</div>
+            <div class="check">完整候选池：重点候选与扩展观察分层展示。</div>
+            <div class="check">个股极简诊断：趋势、点位、风险、建议一次看清。</div>
+            <div class="check">自选观察：识别转强、转弱、热点切换。</div>
+          </div>
+          <div class="panel-list">
+            <div class="panel-item">
+              <span class="label brand">重点体验 1</span>
+              <h3>先建立“每天打开”的理由</h3>
+              <p class="sub">核心不是展示模型，而是让用户真的觉得这套内容能帮他节省盯盘时间。</p>
+            </div>
+            <div class="panel-item">
+              <span class="label accent">重点体验 2</span>
+              <h3>让用户看得懂，不只是看得到</h3>
+              <p class="sub">每条结论都同时给理由、观察区间、风险和失效条件，减少模糊判断。</p>
+            </div>
+            <div class="panel-item">
+              <span class="label warn">重点体验 3</span>
+              <h3>一开始就建立合规认知</h3>
+              <p class="sub">产品是辅助判断工具，不代客操作，也不承诺高胜率或收益。</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="kicker">试用路径</div>
+          <h2>用户从进入试用到决定是否续用的 4 步</h2>
+          <div class="step-list">
+            <div class="step">
+              <div class="step-num">01</div>
+              <div>
+                <h3>首日建立体验锚点</h3>
+                <p class="sub">先看盘前一句话，再看今日候选，最后用自己的股票试一次诊股。</p>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-num">02</div>
+              <div>
+                <h3>第 3 天建立回访习惯</h3>
+                <p class="sub">开始把关注股票加入观察列表，看状态变化是否比自己盯盘更高效。</p>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-num">03</div>
+              <div>
+                <h3>第 7 天验证理解价值</h3>
+                <p class="sub">重点看用户是否理解点位和风险提示，而不是只看某一天结果好坏。</p>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-num">04</div>
+              <div>
+                <h3>第 14 天再谈续用</h3>
+                <p class="sub">如果用户已经形成使用习惯，再引导看订阅方案，而不是一开始就硬转化。</p>
+              </div>
+            </div>
+          </div>
+          <div class="note">页面定位：种子用户试用开通页。建议与 [index.html](index.html) 搭配演示，先看产品主页面，再看用户如何进入试用路径。</div>
+        </div>
+      </section>
+    </div>
+  </body>
+</html>

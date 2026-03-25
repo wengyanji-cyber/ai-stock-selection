@@ -1,0 +1,34 @@
+{
+  "name": "ai-stock-service",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/main.ts",
+    "worker:demo": "tsx src/workers/demo.worker.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/main.js",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate:dev": "prisma migrate dev",
+    "db:migrate": "prisma db execute --file prisma/migrations/20260324130000_init/migration.sql --schema prisma/schema.prisma",
+    "db:migrate:watch-model": "prisma db execute --file prisma/migrations/20260325093000_watchlist_model_rule/migration.sql --schema prisma/schema.prisma",
+    "db:seed": "tsx prisma/seed.ts",
+    "db:setup": "npm run db:migrate && npm run db:migrate:watch-model && npm run db:seed",
+    "lint": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@fastify/cors": "^11.1.0",
+    "@prisma/client": "^6.5.0",
+    "bullmq": "^5.46.1",
+    "dotenv": "^16.4.7",
+    "fastify": "^5.2.1",
+    "ioredis": "^5.4.2",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.14",
+    "prisma": "^6.5.0",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.2"
+  }
+}

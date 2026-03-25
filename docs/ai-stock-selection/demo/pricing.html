@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI选股订阅方案页</title>
+    <link rel="stylesheet" href="shared.css" />
+    <style>
+      .pricing-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 18px; margin-top: 18px; }
+      .plan {
+        padding: 24px; border-radius: 24px; background: var(--panel); box-shadow: var(--shadow); position: relative;
+      }
+      .plan.featured { background: linear-gradient(180deg, rgba(15,93,79,0.94), rgba(11,75,63,0.96)); color: #fff; transform: translateY(-8px); }
+      .plan.featured .muted, .plan.featured .feature, .plan.featured .plan-sub { color: rgba(255,255,255,0.82); }
+      .plan.featured .price-tag { background: rgba(255,255,255,0.12); color: #fff; }
+      .plan .badge {
+        display: inline-flex; padding: 8px 12px; border-radius: 999px; font-size: 12px; background: var(--brand-soft); color: var(--brand);
+      }
+      .plan.featured .badge { background: rgba(255,255,255,0.14); color: #fff; }
+      .plan h2 { margin: 14px 0 8px; }
+      .plan-sub { color: var(--ink-soft); line-height: 1.7; min-height: 72px; }
+      .price-row { display: flex; align-items: baseline; gap: 10px; margin-top: 18px; }
+      .price { font-size: 42px; font-weight: 700; }
+      .price-note { color: var(--ink-soft); }
+      .plan.featured .price-note { color: rgba(255,255,255,0.82); }
+      .price-tag { margin-top: 14px; padding: 10px 12px; border-radius: 14px; background: rgba(15,93,79,0.08); font-size: 13px; color: var(--ink-soft); }
+      .feature-list { flex-direction: column; gap: 12px; margin-top: 18px; }
+      .feature { padding: 14px; border-radius: 16px; background: var(--panel-strong); border: 1px solid var(--line); color: var(--ink-soft); }
+      .plan.featured .feature { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.12); }
+      .action { margin-top: 22px; }
+      .action a { width: 100%; }
+
+      .faq {
+        margin-top: 18px; padding: 24px; border-radius: 24px; background: var(--panel); box-shadow: var(--shadow);
+      }
+      .faq-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 18px; }
+      .faq-item { padding: 16px; border-radius: 18px; background: var(--panel-strong); border: 1px solid var(--line); }
+      .faq-item p { margin: 10px 0 0; color: var(--ink-soft); line-height: 1.8; }
+
+      @media (max-width: 980px) {
+        .pricing-grid, .faq-grid { grid-template-columns: 1fr; }
+        .plan.featured { transform: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <div class="nav">
+        <div class="brand-wordmark">AI短线投研助手</div>
+        <div class="nav-links">
+          <a href="index.html">投研演示页</a>
+          <a href="trial.html">试用开通页</a>
+          <a class="current" href="pricing.html">订阅方案页</a>
+          <a href="login.html">登录注册页</a>
+          <a href="account.html">用户中心页</a>
+          <a href="ops.html">运营后台页</a>
+        </div>
+      </div>
+
+      <section class="hero">
+        <div class="eyebrow">订阅方案 Demo</div>
+        <h1>别卖“稳赚”，卖“更高效、更清晰、更少情绪化交易”的持续价值。</h1>
+        <p>这个页面模拟的是试用结束后的订阅决策页。重点不是高刺激促单，而是把不同层级的价值边界讲清楚，让用户知道付费买到的是效率、结构化结论和持续跟踪，而不是收益承诺。</p>
+        <div class="hero-tags">
+          <span class="tag">按价值分层</span>
+          <span class="tag">先试用后订阅</span>
+          <span class="tag">强调陪伴与结构化判断</span>
+          <span class="tag">合规边界清晰</span>
+        </div>
+        <div class="cta-row">
+          <a class="btn" href="trial.html">返回试用开通页</a>
+          <a class="ghost" href="index.html">查看产品主页面</a>
+        </div>
+      </section>
+
+      <section class="pricing-grid">
+        <article class="plan">
+          <span class="badge">入门版</span>
+          <h2>观察版</h2>
+          <p class="plan-sub">适合先建立使用习惯的用户，重点看盘前一句话、部分热点摘要和基础诊股。</p>
+          <div class="price-row">
+            <div class="price">29</div>
+            <div class="price-note">元 / 月</div>
+          </div>
+          <div class="price-tag">核心价值：每天先知道市场重点，不再从海量信息里盲找方向。</div>
+          <div class="feature-list">
+            <div class="feature">每日盘前一句话</div>
+            <div class="feature">部分热点板块摘要</div>
+            <div class="feature">基础个股诊断</div>
+            <div class="feature">盘后简版复盘</div>
+          </div>
+          <div class="action"><a class="ghost" href="trial.html">先从试用开始</a></div>
+        </article>
+
+        <article class="plan featured">
+          <span class="badge">推荐方案</span>
+          <h2>标准版</h2>
+          <p class="plan-sub">适合已经有自选股和盯盘习惯的活跃用户，重点获得完整候选池、个股诊断和持续观察价值。</p>
+          <div class="price-row">
+            <div class="price">99</div>
+            <div class="price-note">元 / 月</div>
+          </div>
+          <div class="price-tag">核心价值：看结论、看点位、看风险，少看无用噪音。</div>
+          <div class="feature-list">
+            <div class="feature">完整候选池</div>
+            <div class="feature">重点股理由、观察区间、支撑、压力、止损</div>
+            <div class="feature">个股极简诊断</div>
+            <div class="feature">自选观察与状态变化</div>
+            <div class="feature">每日复盘与明日关注方向</div>
+          </div>
+          <div class="action"><a class="btn" href="index.html">查看主产品演示</a></div>
+        </article>
+
+        <article class="plan">
+          <span class="badge">深度版</span>
+          <h2>进阶版</h2>
+          <p class="plan-sub">适合需要更强陪伴和更深度诊断的高频用户，但仍保持辅助判断定位，不越界到代客操盘。</p>
+          <div class="price-row">
+            <div class="price">199</div>
+            <div class="price-note">元 / 月</div>
+          </div>
+          <div class="price-tag">核心价值：更高频的结构化观察和更细的风险识别，而不是更刺激的喊单。</div>
+          <div class="feature-list">
+            <div class="feature">标准版全部能力</div>
+            <div class="feature">午后补充更新</div>
+            <div class="feature">更细的个股风险分层</div>
+            <div class="feature">重点板块轮动跟踪</div>
+          </div>
+          <div class="action"><a class="ghost" href="trial.html">申请深度试用</a></div>
+        </article>
+      </section>
+
+      <section class="faq">
+        <div class="eyebrow">转化页常见问题</div>
+        <h2>这个页面应该回答的，不是“能赚多少”，而是“为什么值得持续用”</h2>
+        <div class="faq-grid">
+          <div class="faq-item">
+            <strong>为什么先试用，再订阅？</strong>
+            <p>因为这类产品最终拼的是使用习惯和理解价值，用户必须先体验到结构化结论和风险提示的长期价值。</p>
+          </div>
+          <div class="faq-item">
+            <strong>为什么不强调高胜率？</strong>
+            <p>因为高胜率承诺会把产品带入高风险叙事。更稳的价值是节省时间、减少情绪化交易、提高判断效率。</p>
+          </div>
+          <div class="faq-item">
+            <strong>为什么分层会员？</strong>
+            <p>因为不同用户需要的深度不同。轻用户先看方向，活跃用户再看候选池和持续观察。</p>
+          </div>
+          <div class="faq-item">
+            <strong>为什么页面上反复提示边界？</strong>
+            <p>因为这个产品必须长期保持“辅助判断工具”的认知，不能一步步滑向代操或承诺收益的风险区。</p>
+          </div>
+        </div>
+      </section>
+    </div>
+  </body>
+</html>

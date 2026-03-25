@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI选股登录注册页</title>
+    <link rel="stylesheet" href="shared.css" />
+    <style>
+      .grid { display: grid; grid-template-columns: 1.02fr 0.98fr; gap: 18px; }
+      .switcher { display: flex; gap: 10px; margin-top: 16px; }
+      .switcher button {
+        border: 0; border-radius: 999px; padding: 10px 16px; cursor: pointer;
+        background: rgba(255,255,255,0.82); color: var(--ink-soft);
+      }
+      .switcher button.active { background: var(--ink); color: #fff; }
+
+      .form-card {
+        margin-top: 18px;
+        padding: 20px;
+        border-radius: 22px;
+        background: var(--panel);
+        border: 1px solid var(--line);
+      }
+
+      .fields { display: grid; gap: 12px; margin-top: 16px; }
+      .field label { display: block; font-size: 13px; color: var(--ink-soft); margin-bottom: 8px; }
+      .field input, .field select {
+        width: 100%; padding: 14px 16px; border-radius: 16px; border: 1px solid var(--line);
+        background: rgba(255,255,255,0.9); color: var(--ink); font-size: 15px;
+      }
+
+      .primary-btn {
+        width: 100%; margin-top: 16px; border: 0; border-radius: 16px; padding: 15px 16px;
+        background: var(--brand); color: #fff; font-size: 15px; cursor: pointer;
+      }
+
+      .benefits { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+      .benefit {
+        width: calc(50% - 5px); padding: 14px; border-radius: 16px; background: var(--panel-strong); border: 1px solid var(--line);
+      }
+
+      @media (max-width: 960px) {
+        .grid { grid-template-columns: 1fr; }
+        .benefit { width: 100%; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <div class="nav">
+        <div class="brand-wordmark">AI短线投研助手</div>
+        <div class="nav-links">
+          <a href="index.html">投研演示页</a>
+          <a href="trial.html">试用开通页</a>
+          <a href="pricing.html">订阅方案页</a>
+          <a class="current" href="login.html">登录注册页</a>
+          <a href="account.html">用户中心页</a>
+          <a href="ops.html">运营后台页</a>
+        </div>
+      </div>
+
+      <div class="grid">
+        <section class="hero">
+          <div class="eyebrow">登录 / 注册 Demo</div>
+          <h1>让用户先建立信任，再进入产品和试用流程。</h1>
+          <p>这个页面模拟产品的登录注册入口。重点不是追求复杂身份体系，而是让用户明白注册之后能做什么：保存自选股、记录观察状态、开启试用和查看自己的使用进度。</p>
+          <div class="hero-tags">
+            <span class="tag">保存自选股</span>
+            <span class="tag">同步诊股历史</span>
+            <span class="tag">开启14天试用</span>
+            <span class="tag">查看续用状态</span>
+          </div>
+          <div class="benefits">
+            <div class="benefit">注册后可把重点股票加入观察列表，持续跟踪状态变化。</div>
+            <div class="benefit">登录后可看到个人试用进度、已看模块和推荐下一步动作。</div>
+            <div class="benefit">统一入口有助于后续接会员、通知和使用行为分析。</div>
+            <div class="benefit">页面表达仍保持“辅助判断工具”定位，不走高刺激金融营销。 </div>
+          </div>
+          <div class="cta-row">
+            <a class="ghost" href="trial.html">先看试用开通页</a>
+            <a class="ghost" href="account.html">查看用户中心页</a>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="panel-title">账号入口</div>
+          <div class="switcher">
+            <button class="active" type="button">登录</button>
+            <button type="button">注册</button>
+          </div>
+          <div class="form-card">
+            <h2>继续进入你的观察视图</h2>
+            <p>适合已经在试用中的用户，直接回到候选池、诊股记录和自选观察。</p>
+            <div class="fields">
+              <div class="field">
+                <label>手机号或邮箱</label>
+                <input type="text" value="demo@example.com" />
+              </div>
+              <div class="field">
+                <label>密码</label>
+                <input type="password" value="12345678" />
+              </div>
+            </div>
+            <button class="primary-btn" type="button">登录并进入用户中心</button>
+          </div>
+
+          <div class="form-card">
+            <h3>注册并开通试用</h3>
+            <p>适合首次体验的用户，重点是快速进入试用，而不是设置太多门槛。</p>
+            <div class="fields">
+              <div class="field">
+                <label>手机号</label>
+                <input type="text" value="13800000000" />
+              </div>
+              <div class="field">
+                <label>主要关注市场</label>
+                <select>
+                  <option>A股</option>
+                  <option>港股</option>
+                  <option>美股</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>你更关注什么</label>
+                <select>
+                  <option>热点板块与候选股</option>
+                  <option>个股诊断与风险提示</option>
+                  <option>持仓观察与复盘</option>
+                </select>
+              </div>
+            </div>
+            <button class="primary-btn" type="button">注册并开始14天试用</button>
+          </div>
+
+          <div class="notice">说明：该页面为 docs 场景演示，重点展示产品闭环中的账号入口结构，不接真实鉴权，也不包含任何交易权限或账户代操作能力。</div>
+        </section>
+      </div>
+    </div>
+  </body>
+</html>
