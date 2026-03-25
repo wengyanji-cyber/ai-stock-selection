@@ -46,7 +46,7 @@ export async function technicalStrategy(tradeDate: Date) {
     signals.push({
       stockCode: bar.stockCode,
       stockName: bar.stockName,
-      sectorName: bar.sectorName,
+      sectorName: bar.sectorName || undefined,
       score: Number(totalScore.toFixed(2)),
       signals: [
         {
@@ -93,7 +93,7 @@ export async function fundFlowStrategy(tradeDate: Date) {
     signals.push({
       stockCode: bar.stockCode,
       stockName: bar.stockName,
-      sectorName: bar.sectorName,
+      sectorName: bar.sectorName || undefined,
       score: Number(flowScore.toFixed(2)),
       signals: [
         {

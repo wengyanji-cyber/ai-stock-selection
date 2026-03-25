@@ -155,7 +155,6 @@ export async function upgradeMembership(
     data: {
       membershipPlan: newPlan,
       status: newPlan === 'TRIAL' ? 'TRIAL' : 'ACTIVE',
-      trialExpiresAt: expiresAt,
     },
   })
 
@@ -184,8 +183,6 @@ export async function upgradeMembership(
 }
 
 export async function getMembershipStatsByUserCode(userCode: string) {
-  console.log('[Membership] Getting stats for userCode:', userCode)
-  
   const user = await prisma.appUser.findUnique({
     where: { userCode },
     select: {
@@ -197,25 +194,20 @@ export async function getMembershipStatsByUserCode(userCode: string) {
     },
   })
 
-  console.log('[Membership] User from DB:', user ? 'found' : 'not found')
-
   if (!user) {
-    console.log('[Membership] User not found in DB')
     return null
   }
 
-  const plan = getMembershipPlan(user.membershipPlan)
+  const plan = getMembershipPlan(user.membershipPlan as MembershipPlan | null | undefined)
   const isTrial = user.status === 'TRIAL' || user.membershipPlan === 'TRIAL'
-  
-  console.log('[Membership] plan:', plan.name, 'isTrial:', isTrial)
   
   // 试用用户固定 14 天，从创建时间计算
   const trialDaysRemaining = isTrial
     ? Math.max(0, 14 - Math.ceil((Date.now() - user.createdAt.getTime()) / (1000 * 60 * 60 * 24)))
     : 0
 
-  const result = {
-    userId: user.id,
+  return {
+    userId: Number(user.id),
     userCode,
     plan: user.membershipPlan,
     planName: plan.name,
@@ -224,10 +216,6 @@ export async function getMembershipStatsByUserCode(userCode: string) {
     expiresAt: isTrial ? new Date(user.createdAt.getTime() + 14 * 24 * 60 * 60 * 1000) : null,
     features: plan.features,
   }
-  
-  console.log('[Membership] Returning:', JSON.stringify(result, null, 2))
-  
-  return result
 }
 
 export async function getMembershipStats(userId: bigint) {
@@ -235,10 +223,6 @@ export async function getMembershipStats(userId: bigint) {
     where: { id: userId },
     select: {
       userCode: true,
-      membershipPlan: true,
-      trialExpiresAt: true,
-      subscriptionExpiresAt: true,
-      createdAt: true,
     },
   })
 

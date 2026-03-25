@@ -6,7 +6,7 @@ export async function registerMembershipRoutes(app: FastifyInstance) {
   app.get('/api/v1/membership/stats', async (request, reply) => {
     try {
       const session = await requireAuthSession(request)
-      const stats = await getMembershipStatsByUserCode(session.profile.userCode)
+      const stats = await getMembershipStatsByUserCode(session.user.userCode)
       
       if (!stats) {
         reply.code(404)
@@ -18,7 +18,6 @@ export async function registerMembershipRoutes(app: FastifyInstance) {
         meta: { source: 'membership', version: 'v1' },
       }
     } catch (error) {
-      console.error('Membership stats error:', error)
       reply.code(401)
       return { data: null, meta: { source: 'membership', version: 'v1' } }
     }
@@ -42,7 +41,7 @@ export async function registerMembershipRoutes(app: FastifyInstance) {
       }
 
       const result = await upgradeMembership(
-        session.profile.id,
+        session.user.id,
         body.plan as MembershipPlan,
         body.paymentId,
       )
@@ -68,7 +67,7 @@ export async function registerMembershipRoutes(app: FastifyInstance) {
 
       const { checkFeatureLimit } = await import('../../lib/membership.js')
       const result = checkFeatureLimit(
-        session.profile.membershipPlan as MembershipPlan,
+        session.user.membershipPlan as MembershipPlan,
         query.feature as any,
         query.value ? Number(query.value) : undefined,
       )

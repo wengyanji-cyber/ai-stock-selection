@@ -47,7 +47,9 @@ async function buildSessionPayload(userId: bigint, sessionToken: { accessToken: 
 
 export async function resolveAuthSession(request: FastifyRequest) {
   const token = parseBearerToken(request)
+  console.log('[Auth] Token from request:', token ? `${token.slice(0, 20)}...` : 'none')
   if (!token) {
+    console.log('[Auth] No token found')
     return null
   }
 
@@ -60,7 +62,10 @@ export async function resolveAuthSession(request: FastifyRequest) {
     include: { user: true },
   })
 
+  console.log('[Auth] Session from DB:', session ? 'found' : 'not found')
+
   if (!session) {
+    console.log('[Auth] Session not found or expired/revoked')
     return null
   }
 
@@ -68,6 +73,8 @@ export async function resolveAuthSession(request: FastifyRequest) {
     where: { id: session.id },
     data: { lastUsedAt: new Date() },
   })
+
+  console.log('[Auth] Session valid, returning with user:', session.user.userCode)
 
   return session
 }

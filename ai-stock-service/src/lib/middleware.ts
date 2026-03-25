@@ -30,7 +30,7 @@ export const MEMBERSHIP_LIMITS = {
   ADVANCED: { dailyCandidates: 9999, watchlistLimit: 9999, diagnosisDepth: 'deep' as const },
 }
 
-export const FEATURE_ACCESS = {
+export const FEATURE_ACCESS: Record<string, string[]> = {
   TRIAL: [],
   OBSERVER: ['data_export'],
   STANDARD: ['deep_diagnosis', 'data_export', 'backtest', 'push'],
@@ -40,19 +40,27 @@ export const FEATURE_ACCESS = {
 async function getSession(request: FastifyRequest): Promise<AuthSession | null> {
   try {
     const session = (request as any).session
-    if (!session?.user) return null
+    console.log('[Middleware] Session from request:', session ? 'found' : 'not found')
+    if (!session?.user) {
+      console.log('[Middleware] No session.user')
+      return null
+    }
+    console.log('[Middleware] Session user:', session.user.userCode)
     return session as unknown as AuthSession
-  } catch {
+  } catch (e) {
+    console.log('[Middleware] getSession error:', e)
     return null
   }
 }
 
 export function getMembershipLimits(plan: string | null) {
-  return MEMBERSHIP_LIMITS[plan as keyof typeof MEMBERSHIP_LIMITS] || MEMBERSHIP_LIMITS.TRIAL
+  const key = (plan || 'TRIAL') as keyof typeof MEMBERSHIP_LIMITS
+  return MEMBERSHIP_LIMITS[key] || MEMBERSHIP_LIMITS.TRIAL
 }
 
 export function hasFeatureAccess(plan: string | null, feature: string) {
-  const features = FEATURE_ACCESS[plan as keyof typeof FEATURE_ACCESS] || []
+  const key = (plan || 'TRIAL') as keyof typeof FEATURE_ACCESS
+  const features = FEATURE_ACCESS[key] || []
   return features.includes(feature)
 }
 
