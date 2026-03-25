@@ -273,14 +273,17 @@ export async function registerMarketRoutes(app: FastifyInstance) {
       reply.code(401)
       return {
         data: null,
+        error: '请先登录',
         meta: { source: 'mysql', version: 'v1' },
       }
     }
 
+    const userId = Number(session.user.id)
+    console.log('[Watchlist] User ID:', userId, 'session:', typeof session.user)
     // 检查自选数量限制
+    const currentWatchlist = await getWatchlistItems(userId)
     const { enforceWatchlistLimit } = await import('../../lib/middleware.js')
-    const currentWatchlist = await getWatchlistItems(session.userId)
-    const limitEnforced = await enforceWatchlistLimit(request as any, reply, currentWatchlist.length)
+    const limitEnforced = await enforceWatchlistLimit(request as any, reply, currentWatchlist.length, session)
     
     if (!limitEnforced) {
       return // 中间件已返回错误响应
@@ -290,7 +293,7 @@ export async function registerMarketRoutes(app: FastifyInstance) {
 
     return {
       data: await upsertWatchlistItem({
-        userId: session.userId,
+        userId: userId,
         stockCode: typeof body.stockCode === 'string' ? body.stockCode : '',
         stockName: typeof body.stockName === 'string' ? body.stockName : '',
         sectorName: typeof body.sectorName === 'string' ? body.sectorName : undefined,

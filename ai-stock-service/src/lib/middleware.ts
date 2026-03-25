@@ -110,8 +110,8 @@ export async function checkCandidateLimit(request: FastifyRequest, count: number
   }
 }
 
-export async function checkWatchlistLimit(request: FastifyRequest, count: number): Promise<LimitCheckResult> {
-  const session = await getSession(request)
+export async function checkWatchlistLimit(request: FastifyRequest, count: number, providedSession?: any): Promise<LimitCheckResult> {
+  const session = providedSession || await getSession(request)
   if (!session) {
     return {
       allowed: false,
@@ -214,9 +214,10 @@ export async function enforceCandidateLimit(
 export async function enforceWatchlistLimit(
   request: FastifyRequest,
   reply: FastifyReply,
-  count: number
+  count: number,
+  providedSession?: any
 ): Promise<boolean> {
-  const result = await checkWatchlistLimit(request, count)
+  const result = await checkWatchlistLimit(request, count, providedSession)
   
   if (!result.allowed) {
     reply.code(result.current === 0 ? 401 : 403).send({
