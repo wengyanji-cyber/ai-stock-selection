@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { getCurrentUserCode } from '../utils/session'
+import { Link, useNavigate } from 'react-router-dom'
+import { getCurrentUserCode, clearCurrentSession } from '../utils/session'
 
 type MembershipStats = {
   plan: string
@@ -22,16 +22,23 @@ type MembershipStats = {
 
 async function fetchMembershipStats() {
   const token = localStorage.getItem('auth_token')
-  const res = await fetch('http://106.52.6.176:3010/api/v1/membership/stats', {
-    headers: {
-      'Authorization': `Bearer ${token || ''}`,
-    },
-  })
-  const json = await res.json()
-  return json.data as MembershipStats | null
+  if (!token) return null
+  
+  try {
+    const res = await fetch('http://106.52.6.176:3010/api/v1/membership/stats', {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    })
+    const json = await res.json()
+    return json.data as MembershipStats | null
+  } catch {
+    return null
+  }
 }
 
 function AccountPage() {
+  const navigate = useNavigate()
   const userCode = getCurrentUserCode()
   const [stats, setStats] = useState<MembershipStats | null>(null)
   const [loading, setLoading] = useState(true)
@@ -48,13 +55,19 @@ function AccountPage() {
       .finally(() => setLoading(false))
   }, [userCode])
 
+  function handleLogout() {
+    clearCurrentSession()
+    navigate('/')
+    window.location.reload()
+  }
+
   if (!userCode) {
     return (
       <div className="page-stack">
         <section className="panel-card">
           <div className="section-kicker">用户中心</div>
           <h2>当前还没有登录</h2>
-          <p>先登录或开通试用账号</p>
+          <p>登录后可以查看会员状态、管理订阅、查看账单</p>
           <div className="action-row">
             <Link className="primary-button" to="/login">去登录</Link>
             <Link className="secondary-button" to="/trial">开通试用</Link>
@@ -73,6 +86,13 @@ function AccountPage() {
         </section>
       </div>
     )
+  }
+
+  const planColors: Record<string, string> = {
+    TRIAL: '#ffc107',
+    OBSERVER: '#6c757d',
+    STANDARD: '#667eea',
+    ADVANCED: '#28a745',
   }
 
   return (
@@ -100,24 +120,37 @@ function AccountPage() {
       </section>
 
       <section className="content-grid">
-        <article className="panel-card">
+        <article className="panel-card" style={{ borderLeft: `4px solid ${planColors[stats?.plan || 'TRIAL']}` }}>
           <div className="section-kicker">当前套餐</div>
           <div className="info-card">
             <div className="card-head">
-              <h2>{stats?.planName}</h2>
+              <h2>
+                <span className={`badge ${stats?.isTrial ? 'warn' : 'accent'}`}>
+                  {stats?.planName}
+                </span>
+              </h2>
               {stats?.isTrial && (
-                <span className="badge brand">试用中</span>
+                <span className="meta-text">试用中</span>
               )}
             </div>
-            <p>
+            <p style={{ fontSize: '16px', margin: '15px 0' }}>
               {stats?.isTrial
                 ? `试用期至 ${stats?.expiresAt?.slice(0, 10) || '--'}`
                 : `订阅至 ${stats?.expiresAt?.slice(0, 10) || '--'}`}
             </p>
+            {stats?.isTrial && stats.trialDaysRemaining <= 3 && (
+              <div className="note-card" style={{ background: '#fff3cd', borderLeft: '4px solid #ffc107' }}>
+                ⏰ 试用即将到期，还剩 {stats.trialDaysRemaining} 天
+              </div>
+            )}
             <div className="action-row">
-              {stats?.isTrial && (
+              {stats?.isTrial ? (
                 <Link className="primary-button" to="/pricing">
-                  升级套餐
+                  💳 升级套餐
+                </Link>
+              ) : (
+                <Link className="secondary-button" to="/account/billing">
+                  💳 续费订阅
                 </Link>
               )}
               <Link className="secondary-button" to="/pricing">
@@ -128,37 +161,64 @@ function AccountPage() {
         </article>
 
         <article className="panel-card">
-          <div className="section-kicker">套餐权益</div>
-          <ul className="bullet-list">
-            <li>
-              📊 候选股票：{stats?.features.dailyCandidates || 0}只/天
-              {stats && stats.features.dailyCandidates < 10 && (
-                <span className="meta-text">（升级后可增加）</span>
-              )}
-            </li>
-            <li>
-              📝 自选数量：{stats?.features.watchlistLimit || 0}只
-            </li>
-            <li>
-              📈 诊断深度：{stats?.features.diagnosisDepth === 'deep' ? '深度' : stats?.features.diagnosisDepth === 'standard' ? '标准' : '基础'}
-            </li>
-            <li>
-              🔔 推送通知：{stats?.features.pushNotifications ? '✅ 支持' : '❌ 不支持'}
-            </li>
-            <li>
-              💾 数据导出：{stats?.features.dataExport ? '✅ 支持' : '❌ 不支持'}
-            </li>
-            <li>
-              🧪 策略回测：{stats?.features.strategyBacktest ? '✅ 支持' : '❌ 不支持'}
-            </li>
-            <li>
-              🎧 客服支持：{stats?.features.customerSupport === 'dedicated' ? '专属客服' : stats?.features.customerSupport === 'priority' ? '优先支持' : stats?.features.customerSupport === 'email' ? '邮件支持' : '无'}
-            </li>
-          </ul>
+          <div className="section-kicker">套餐权益使用情况</div>
+          <div className="stack-list">
+            <div className="info-card">
+              <div className="card-head">
+                <h4>📊 候选股票</h4>
+                <span className="meta-text">{stats?.features.dailyCandidates || 0}/天</span>
+              </div>
+              <div style={{ background: '#f0f0f0', borderRadius: '4px', height: '8px', marginTop: '10px' }}>
+                <div style={{ width: '60%', background: '#667eea', height: '100%', borderRadius: '4px' }} />
+              </div>
+              <p className="meta-text" style={{ marginTop: '5px' }}>今日已查看 2 只，还剩 {((stats?.features.dailyCandidates || 0) - 2)} 只</p>
+            </div>
+
+            <div className="info-card">
+              <div className="card-head">
+                <h4>📝 自选股票</h4>
+                <span className="meta-text">0/{stats?.features.watchlistLimit || 0}</span>
+              </div>
+              <div style={{ background: '#f0f0f0', borderRadius: '4px', height: '8px', marginTop: '10px' }}>
+                <div style={{ width: '0%', background: '#28a745', height: '100%', borderRadius: '4px' }} />
+              </div>
+              <p className="meta-text" style={{ marginTop: '5px' }}>还可添加 {stats?.features.watchlistLimit || 0} 只</p>
+            </div>
+
+            <div className="info-card">
+              <div className="card-head">
+                <h4>📈 诊断深度</h4>
+                <span className={`badge ${stats?.features.diagnosisDepth === 'deep' ? 'accent' : 'brand'}`}>
+                  {stats?.features.diagnosisDepth === 'deep' ? '深度' : stats?.features.diagnosisDepth === 'standard' ? '标准' : '基础'}
+                </span>
+              </div>
+              <p className="meta-text">
+                {stats?.features.diagnosisDepth === 'deep' 
+                  ? '✅ 支持深度诊断报告' 
+                  : '⚠️ 升级解锁深度诊断'}
+              </p>
+            </div>
+
+            <div className="info-card">
+              <div className="card-head">
+                <h4>🔔 推送通知</h4>
+                {stats?.features.pushNotifications ? (
+                  <span className="badge accent">✅ 支持</span>
+                ) : (
+                  <span className="badge">❌ 不支持</span>
+                )}
+              </div>
+              <p className="meta-text">
+                {stats?.features.pushNotifications 
+                  ? '盘前推荐、风险预警自动推送' 
+                  : '升级解锁推送功能'}
+              </p>
+            </div>
+          </div>
         </article>
 
         <article className="panel-card">
-          <div className="section-kicker">账户设置</div>
+          <div className="section-kicker">账户管理</div>
           <div className="stack-list">
             <Link className="action-button" to="/account/profile">
               👤 个人资料
@@ -169,7 +229,7 @@ function AccountPage() {
             <Link className="action-button" to="/account/billing">
               💳 账单管理
             </Link>
-            <button className="secondary-button" type="button">
+            <button className="secondary-button" type="button" onClick={handleLogout}>
               🚪 退出登录
             </button>
           </div>
@@ -177,11 +237,30 @@ function AccountPage() {
       </section>
 
       {stats?.isTrial && (
-        <section className="panel-card" style={{ background: '#fff3cd', padding: '20px', borderLeft: '4px solid #ffc107' }}>
-          <h4>⏰ 试用即将到期</h4>
-          <p>你的试用期还剩 {stats.trialDaysRemaining} 天，升级套餐可继续享受完整功能。</p>
+        <section className="panel-card" style={{ background: `linear-gradient(135deg, ${planColors[stats.plan]}22 0%, ${planColors[stats.plan]}11 100%)`, padding: '30px 20px', border: `2px solid ${planColors[stats.plan]}` }}>
+          <h3 style={{ marginBottom: '10px' }}>⏰ 试用即将到期</h3>
+          <p style={{ color: '#666', marginBottom: '20px' }}>
+            你的试用期还剩 <strong>{stats.trialDaysRemaining} 天</strong>，升级套餐可继续享受完整功能。
+          </p>
+          <div className="action-row">
+            <Link className="primary-button" to="/pricing">
+              立即升级 - 解锁完整功能
+            </Link>
+            <Link className="secondary-button" to="/pricing">
+              查看套餐对比
+            </Link>
+          </div>
+        </section>
+      )}
+
+      {!stats?.isTrial && stats?.plan !== 'ADVANCED' && (
+        <section className="panel-card" style={{ background: 'linear-gradient(135deg, #667eea22 0%, #764ba211 100%)', padding: '30px 20px', border: '2px solid #667eea' }}>
+          <h3 style={{ marginBottom: '10px' }}>🚀 升级进阶版</h3>
+          <p style={{ color: '#666', marginBottom: '20px' }}>
+            无限候选股票、API 接口、专属客服，机构级投研工具
+          </p>
           <Link className="primary-button" to="/pricing">
-            立即升级
+            了解进阶版
           </Link>
         </section>
       )}

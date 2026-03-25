@@ -33,10 +33,24 @@ export async function registerMarketRoutes(app: FastifyInstance) {
     meta: { source: 'mysql', version: 'v1' },
   }))
 
-  app.get('/api/v1/candidates', async () => ({
-    data: await getCandidateList(),
-    meta: { source: 'mysql', version: 'v1' },
-  }))
+  app.get('/api/v1/candidates', async (request) => {
+    const { checkCandidateLimit } = await import('../../lib/middleware.js')
+    const limitCheck = await checkCandidateLimit(request as any, 0)
+    
+    if (!limitCheck.allowed) {
+      return {
+        data: [],
+        error: limitCheck.message,
+        upgradeHint: limitCheck.upgradeHint,
+        meta: { source: 'mysql', version: 'v1' },
+      }
+    }
+
+    return {
+      data: await getCandidateList(),
+      meta: { source: 'mysql', version: 'v1' },
+    }
+  })
 
   app.get('/api/v1/candidates/detail', async () => ({
     data: await getCandidateDetails(),
