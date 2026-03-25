@@ -81,6 +81,78 @@ export function hasFeatureAccess(plan: string | null, feature: string) {
   return features.includes(feature)
 }
 
+/**
+ * 检查功能访问权限并返回结果
+ */
+export async function checkFeatureAccess(request: FastifyRequest, feature: string, providedSession?: any): Promise<LimitCheckResult> {
+  const session = providedSession || await getSession(request)
+  
+  if (!session) {
+    return {
+      allowed: false,
+      limit: 0,
+      current: 0,
+      message: '请先登录',
+      upgradeHint: '登录后即可体验',
+    }
+  }
+
+  const plan = session.user.membershipPlan
+  const hasAccess = hasFeatureAccess(plan, feature)
+  
+  if (!hasAccess) {
+    const limits = getMembershipLimits(plan)
+    return {
+      allowed: false,
+      limit: 0,
+      current: 0,
+      message: `当前套餐不支持${getFeatureName(feature)}功能`,
+      upgradeHint: '升级套餐以解锁此功能',
+      upgradeTo: '/subscription',
+    }
+  }
+
+  return {
+    allowed: true,
+    limit: 1,
+    current: 0,
+    message: 'OK',
+  }
+}
+
+/**
+ * 强制检查功能权限，返回布尔值
+ */
+export async function enforceFeatureAccess(
+  request: FastifyRequest,
+  reply: FastifyReply,
+  feature: string,
+  providedSession?: any
+): Promise<boolean> {
+  const result = await checkFeatureAccess(request, feature, providedSession)
+  
+  if (!result.allowed) {
+    reply.code(403)
+    return {
+      data: null,
+      ...result,
+    }
+  }
+  
+  return true
+}
+
+function getFeatureName(feature: string): string {
+  const names: Record<string, string> = {
+    dataExport: '数据导出',
+    strategyBacktest: '策略回测',
+    deepDiagnosis: '深度诊断',
+    pushNotifications: '推送通知',
+    apiAccess: 'API 访问',
+  }
+  return names[feature] || feature
+}
+
 export async function checkCandidateLimit(request: FastifyRequest, count: number, providedSession?: any): Promise<LimitCheckResult> {
   // 如果提供了 session，直接使用
   const session = providedSession || await getSession(request)
@@ -137,27 +209,6 @@ export async function checkWatchlistLimit(request: FastifyRequest, count: number
   }
 }
 
-export async function checkFeatureAccess(
-  request: FastifyRequest,
-  feature: 'deep_diagnosis' | 'data_export' | 'backtest' | 'push' | 'api_access'
-): Promise<FeatureCheckResult> {
-  const session = await getSession(request)
-  if (!session) {
-    return {
-      allowed: false,
-      message: '请先登录',
-      upgradeHint: '登录后即可体验',
-    }
-  }
-
-  const allowed = hasFeatureAccess(session.user.membershipPlan, feature)
-
-  return {
-    allowed,
-    message: allowed ? '功能可用' : `当前套餐不支持此功能`,
-    upgradeHint: !allowed && session.user.membershipPlan !== 'ADVANCED' ? '升级套餐解锁此功能' : null,
-  }
-}
 
 export async function requireMembership(
   request: FastifyRequest,

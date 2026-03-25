@@ -98,8 +98,34 @@ export async function registerMarketRoutes(app: FastifyInstance) {
     }
   })
 
-  app.get('/api/v1/diagnoses', async (request) => {
+  app.get('/api/v1/diagnoses', async (request, reply) => {
+    const { requireAuthSession } = await import('../auth/auth.service.js')
+    const { checkFeatureAccess } = await import('../../lib/middleware.js')
+    
+    const session = await requireAuthSession(request).catch(() => null)
+    if (!session) {
+      return {
+        data: [],
+        error: '请先登录',
+        meta: { source: 'mysql', version: 'v1' },
+      }
+    }
+
+    // 检查深度诊断权限
     const query = request.query as Record<string, unknown>
+    const isDeep = query.depth === 'deep' || query.detail === 'true'
+    
+    if (isDeep) {
+      const accessCheck = await checkFeatureAccess(request, 'strategyBacktest', session)
+      if (!accessCheck.allowed) {
+        return {
+          data: [],
+          error: accessCheck.message,
+          upgradeHint: accessCheck.upgradeHint,
+          meta: { source: 'mysql', version: 'v1' },
+        }
+      }
+    }
 
     return {
       data: await getDiagnosisList(typeof query.keyword === 'string' ? query.keyword : undefined),
@@ -107,10 +133,35 @@ export async function registerMarketRoutes(app: FastifyInstance) {
     }
   })
 
-  app.get('/api/v1/reviews/latest', async () => ({
-    data: await getLatestReview(),
-    meta: { source: 'mysql', version: 'v1' },
-  }))
+  app.get('/api/v1/reviews/latest', async (request, reply) => {
+    const { requireAuthSession } = await import('../auth/auth.service.js')
+    const { checkFeatureAccess } = await import('../../lib/middleware.js')
+    
+    const session = await requireAuthSession(request).catch(() => null)
+    if (!session) {
+      return {
+        data: null,
+        error: '请先登录',
+        meta: { source: 'mysql', version: 'v1' },
+      }
+    }
+
+    // 检查复盘权限（标准版及以上）
+    const accessCheck = await checkFeatureAccess(request, 'pushNotifications', session)
+    if (!accessCheck.allowed) {
+      return {
+        data: null,
+        error: accessCheck.message,
+        upgradeHint: accessCheck.upgradeHint,
+        meta: { source: 'mysql', version: 'v1' },
+      }
+    }
+
+    return {
+      data: await getLatestReview(),
+      meta: { source: 'mysql', version: 'v1' },
+    }
+  })
 
   app.post('/api/v1/auth/trial-login', async (request) => {
     const body = request.body as Record<string, unknown>
