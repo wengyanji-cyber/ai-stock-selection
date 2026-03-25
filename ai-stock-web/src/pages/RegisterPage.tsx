@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { registerUserAccount } from '../api/demoApi'
+import AgreementModal from '../components/AgreementModal'
 
 function RegisterPage() {
   const navigate = useNavigate()
@@ -8,6 +9,8 @@ function RegisterPage() {
   const [form, setForm] = useState({ userCode: '', nickname: '', mobile: '', password: '12345678' })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
+  const [showAgreement, setShowAgreement] = useState(false)
+  const [agreed, setAgreed] = useState(false)
 
   async function handleSubmit() {
     setIsSubmitting(true)
@@ -22,6 +25,13 @@ function RegisterPage() {
 
     if (!form.password || form.password.length < 6) {
       setError('密码长度至少 6 位，请重新设置。')
+      setIsSubmitting(false)
+      return
+    }
+
+    // 检查是否已同意协议
+    if (!agreed) {
+      setShowAgreement(true)
       setIsSubmitting(false)
       return
     }
@@ -83,10 +93,26 @@ function RegisterPage() {
           </button>
           {error ? <div className="note-card error-card">{error}</div> : null}
           <div className="note-card">
-            <strong>💡 提示：</strong>注册即代表同意《用户服务协议》和《隐私政策》
+            <strong>🔒 安全提示：</strong>注册前需阅读并同意相关协议
           </div>
         </div>
       </section>
+
+      <AgreementModal
+        isOpen={showAgreement}
+        onClose={() => {
+          setShowAgreement(false)
+          setIsSubmitting(false)
+          setError('请先阅读并同意相关协议')
+        }}
+        onAgree={() => {
+          setAgreed(true)
+          setShowAgreement(false)
+          // 继续提父
+          handleSubmit()
+        }}
+        type="registration"
+      />
     </div>
   )
 }
