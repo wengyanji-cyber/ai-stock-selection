@@ -14,8 +14,8 @@ function WatchPage() {
       <div className="page-stack">
         <section className="panel-card">
           <div className="section-kicker">自选观察</div>
-          <h2>当前还没有登录用户，无法保存个人自选观察。</h2>
-          <p>先去登录或开通试用账号，再把候选股票加入你的个人观察列表。</p>
+          <h2>登录后才能保存自选股票哦</h2>
+          <p>自选观察列表可以帮你跟踪关心的股票，获取实时诊断和风险提示。</p>
           <div className="action-row">
             <button className="primary-button" type="button" onClick={() => navigate('/login')}>
               去登录

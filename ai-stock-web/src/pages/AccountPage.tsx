@@ -38,13 +38,19 @@ function AccountPage() {
         newPassword: passwordForm.newPassword,
       })
       setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' })
-      setPasswordState({ isSubmitting: false, error: '', success: '密码已更新，当前设备会话已自动续新。' })
+      setPasswordState({ isSubmitting: false, error: '', success: '✅ 密码已更新，下次登录请使用新密码。' })
     } catch (submitError) {
-      setPasswordState({
-        isSubmitting: false,
-        error: submitError instanceof Error ? submitError.message : '修改密码失败',
-        success: '',
-      })
+      if (submitError instanceof Error) {
+        if (submitError.message.includes('401')) {
+          setPasswordState({ isSubmitting: false, error: '当前密码错误，请检查后重试。', success: '' })
+        } else if (submitError.message.includes('400')) {
+          setPasswordState({ isSubmitting: false, error: '新密码不符合要求，请使用字母 + 数字组合。', success: '' })
+        } else {
+          setPasswordState({ isSubmitting: false, error: submitError.message, success: '' })
+        }
+      } else {
+        setPasswordState({ isSubmitting: false, error: '修改密码失败，请稍后重试。', success: '' })
+      }
     }
   }
 
