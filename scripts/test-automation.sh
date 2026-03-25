@@ -40,18 +40,18 @@ log_fail() {
 # 获取 Token
 get_token() {
     local user_code=$1
-    local token=$(curl -s -X POST "$BASE_URL/api/v1/auth/login" \
+    local response=$(curl -s -X POST "$BASE_URL/api/v1/auth/login" \
         -H "Content-Type: application/json" \
-        -d "{\"userCode\":\"$user_code\",\"password\":\"$TEST_PASSWORD\"}" \
-        | jq -r '.data.accessToken // .data.profile.accessToken')
+        -d "{\"userCode\":\"$user_code\",\"password\":\"$TEST_PASSWORD\"}")
     
-    # 如果是 admin_root，从 profile 获取
+    # 尝试从 data.accessToken 获取
+    local token=$(echo "$response" | jq -r '.data.accessToken')
+    
+    # 如果为 null，尝试从 data.profile.accessToken 获取
     if [ "$token" == "null" ] || [ -z "$token" ]; then
-        token=$(curl -s -X POST "$BASE_URL/api/v1/auth/login" \
-            -H "Content-Type: application/json" \
-            -d "{\"userCode\":\"$user_code\",\"password\":\"$TEST_PASSWORD\"}" \
-            | jq -r '.data.profile.accessToken')
+        token=$(echo "$response" | jq -r '.data.profile.accessToken')
     fi
+    
     echo "$token"
 }
 
