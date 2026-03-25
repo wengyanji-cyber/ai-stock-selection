@@ -222,6 +222,45 @@ export async function registerPaymentRoutes(app: FastifyInstance) {
       }
     }
   })
+
+  // 运营端订单列表
+  app.get('/api/v1/admin/payment/orders', async (request, reply) => {
+    const session = await requireAuthSession(request).catch(() => null)
+    if (!session || (session.user.membershipPlan !== 'ADVANCED' && session.user.userCode !== 'admin_root')) {
+      reply.code(403)
+      return {
+        data: [],
+        error: '需要管理员权限',
+      }
+    }
+
+    try {
+      const orders = await prisma.paymentOrder.findMany({
+        where: { userCode: session.user.userCode },
+        orderBy: { createdAt: 'desc' },
+        take: 20,
+      })
+
+      return {
+        data: orders.map(o => ({
+          orderNo: o.orderNo,
+          amount: o.amount,
+          planName: o.planName,
+          status: o.status,
+          paidAt: o.paidAt,
+          createdAt: o.createdAt,
+        })),
+        meta: { source: 'mysql', version: 'v1' },
+      }
+    } catch (error: any) {
+      console.error('[Payment] List orders error:', error)
+      reply.code(500)
+      return {
+        data: [],
+        error: '查询订单列表失败',
+      }
+    }
+  })
 }
 
 /**

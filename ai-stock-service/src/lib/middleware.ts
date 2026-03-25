@@ -108,7 +108,6 @@ export async function checkFeatureAccess(request: FastifyRequest, feature: strin
       current: 0,
       message: `当前套餐不支持${getFeatureName(feature)}功能`,
       upgradeHint: '升级套餐以解锁此功能',
-      upgradeTo: '/subscription',
     }
   }
 
@@ -132,11 +131,12 @@ export async function enforceFeatureAccess(
   const result = await checkFeatureAccess(request, feature, providedSession)
   
   if (!result.allowed) {
-    reply.code(403)
-    return {
+    reply.code(403).send({
       data: null,
-      ...result,
-    }
+      error: result.message,
+      upgradeHint: result.upgradeHint,
+    })
+    return false
   }
   
   return true
