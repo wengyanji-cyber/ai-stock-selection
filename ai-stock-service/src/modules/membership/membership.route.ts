@@ -1,12 +1,12 @@
 import { FastifyInstance } from 'fastify'
 import { requireAuthSession } from '../auth/auth.service.js'
-import { getMembershipStats, upgradeMembership, MEMBERSHIP_PLANS, type MembershipPlan } from '../../lib/membership.js'
+import { getMembershipStatsByUserCode, upgradeMembership, MEMBERSHIP_PLANS, type MembershipPlan } from '../../lib/membership.js'
 
 export async function registerMembershipRoutes(app: FastifyInstance) {
   app.get('/api/v1/membership/stats', async (request, reply) => {
     try {
       const session = await requireAuthSession(request)
-      const stats = await getMembershipStats(session.profile.userCode)
+      const stats = await getMembershipStatsByUserCode(session.user.userCode)
       
       if (!stats) {
         reply.code(404)
@@ -17,7 +17,7 @@ export async function registerMembershipRoutes(app: FastifyInstance) {
         data: stats,
         meta: { source: 'membership', version: 'v1' },
       }
-    } catch {
+    } catch (error) {
       reply.code(401)
       return { data: null, meta: { source: 'membership', version: 'v1' } }
     }

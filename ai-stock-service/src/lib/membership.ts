@@ -183,12 +183,14 @@ export async function upgradeMembership(
   }
 }
 
-export async function getMembershipStats(userId: bigint) {
+export async function getMembershipStatsByUserCode(userCode: string) {
   const user = await prisma.appUser.findUnique({
-    where: { id: userId },
+    where: { userCode },
     select: {
+      id: true,
+      userCode: true,
       membershipPlan: true,
-      trialExpiresAt: true,
+      status: true,
       createdAt: true,
     },
   })
@@ -198,17 +200,40 @@ export async function getMembershipStats(userId: bigint) {
   }
 
   const plan = getMembershipPlan(user.membershipPlan)
-  const isTrial = user.membershipPlan === 'TRIAL'
-  const expiresAt = isTrial ? user.trialExpiresAt : user.trialExpiresAt
+  const isTrial = user.status === 'TRIAL' || user.membershipPlan === 'TRIAL'
+  
+  // 试用用户固定 14 天，从创建时间计算
+  const trialDaysRemaining = isTrial
+    ? Math.max(0, 14 - Math.ceil((Date.now() - user.createdAt.getTime()) / (1000 * 60 * 60 * 24)))
+    : 0
 
   return {
+    userId: user.id,
+    userCode,
     plan: user.membershipPlan,
     planName: plan.name,
     isTrial,
-    trialDaysRemaining: expiresAt
-      ? Math.max(0, Math.ceil((expiresAt.getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
-      : 0,
-    expiresAt,
+    trialDaysRemaining,
+    expiresAt: isTrial ? new Date(user.createdAt.getTime() + 14 * 24 * 60 * 60 * 1000) : null,
     features: plan.features,
   }
+}
+
+export async function getMembershipStats(userId: bigint) {
+  const user = await prisma.appUser.findUnique({
+    where: { id: userId },
+    select: {
+      userCode: true,
+      membershipPlan: true,
+      trialExpiresAt: true,
+      subscriptionExpiresAt: true,
+      createdAt: true,
+    },
+  })
+
+  if (!user) {
+    return null
+  }
+
+  return getMembershipStatsByUserCode(user.userCode)
 }
