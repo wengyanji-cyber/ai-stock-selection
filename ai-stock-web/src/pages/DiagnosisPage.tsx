@@ -37,23 +37,34 @@ const mock: Record<string, any> = {
   '300750': { score: 85, tech: 88, fund: 75, cap: 90, sent: 82, trend: 'up', str: '强', sup: [185, 180], press: [200, 210], sl: 175, tgt: 220 },
 }
 
+// mock股票列表
+const mockStocks = [
+  { code: '300750', name: '宁德时代', sector: '新能源', summary: '全球领先动力电池制造商' },
+  { code: '000001', name: '平安银行', sector: '银行', summary: '全国性股份制商业银行' },
+  { code: '000858', name: '五粮液', sector: '白酒', summary: '高端白酒龙头企业' },
+  { code: '002594', name: '比亚迪', sector: '汽车', summary: '新能源汽车领军企业' },
+]
+
 export default function DiagnosisPage() {
   const [sp, setSp] = useSearchParams()
   const [kw, setKw] = useState('')
-  const { items: list } = useDiagnoses(kw)
-  const [code, setCode] = useState(sp.get('code') || '')
+  const [code, setCode] = useState(sp.get('code') || '300750')
 
-  useEffect(() => {
-    setCode(sp.get('code') || list[0]?.code || '')
-  }, [list, sp])
+  // 过滤股票列表
+  const list = useMemo(() => {
+    if (!kw) return mockStocks
+    return mockStocks.filter(s => 
+      s.name.includes(kw) || s.code.includes(kw) || s.sector.includes(kw)
+    )
+  }, [kw])
 
-  const sel = useMemo(() => list.find(i => i.code === code) || list[0], [list, code])
+  const sel = useMemo(() => list.find(i => i.code === code) || mockStocks[0], [list, code])
   const d = useMemo(() => {
     if (!sel) return null
     return mock[sel.code] || { score: 70, tech: 72, fund: 68, cap: 70, sent: 70, trend: 'neutral', str: '中', sup: [50], press: [60], sl: 45, tgt: 70 }
   }, [sel])
 
-  if (!sel || !d) return <div className="page-stack"><div className="panel-card"><p>加载中...</p></div></div>
+  if (!sel || !d) return <div className="page-stack"><div className="panel-card"><p>暂无数据</p></div></div>
 
   const r = getRating(d.score)
 
