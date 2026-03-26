@@ -46,7 +46,13 @@ function AdminLayout({ children }: PropsWithChildren) {
           </div>
           <div className="topbar-meta">
             <span className="soft-chip">{ADMIN_DATA_MODE} 数据模式</span>
-            <span className="soft-chip">{session?.profile.nickname || '未登录'}</span>
+            {session && (
+              <span className="user-info">
+                <span className="user-nickname">{session.profile.nickname}</span>
+                <span className="user-code">({session.profile.userCode})</span>
+              </span>
+            )}
+            {!session && <span className="soft-chip">未登录</span>}
             {session ? (
               <button
                 className="action-button"
@@ -55,7 +61,7 @@ function AdminLayout({ children }: PropsWithChildren) {
                 onClick={() => {
                   setIsLoggingOut(true)
                   void logoutAdminSession().finally(() => {
-                    window.location.href = '/login'
+                    window.location.href = '/admin/login'
                   })
                 }}
               >

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import AdminHero from '../components/AdminHero'
 import AdminPanel from '../components/AdminPanel'
+import { ADMIN_API_BASE_URL } from '../constants/runtime'
 
 type SystemStatus = {
   api: { status: string; latency?: number }
@@ -12,8 +13,8 @@ type SystemStatus = {
 async function fetchSystemStatus() {
   try {
     const [healthRes, queuesRes] = await Promise.all([
-      fetch('http://106.52.6.176:3010/api/health'),
-      fetch('http://106.52.6.176:3010/api/v1/jobs/queues', {
+      fetch(`${ADMIN_API_BASE_URL}/api/health`),
+      fetch(`${ADMIN_API_BASE_URL}/api/v1/jobs/queues`, {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('admin_token') || ''}` }
       }),
     ])

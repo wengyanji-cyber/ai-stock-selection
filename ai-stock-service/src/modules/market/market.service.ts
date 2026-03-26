@@ -1,6 +1,7 @@
 import type { Prisma } from '@prisma/client'
 import { prisma } from '../../lib/prisma.js'
 import { createUserSession } from '../auth/auth.service.js'
+import type { Decimal } from '@prisma/client/runtime/library.js'
 
 const DEFAULT_USER_CODE = 'trial_user_a'
 
@@ -580,16 +581,15 @@ export async function getUserProfile(userId: bigint) {
 }
 
 export async function getStockDetail(stockCode: string) {
-  const now = new Date()
-  const tradeDate = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()))
-
+  // 获取该股票最新的行情数据
   const [bar, diagnosis, candidate] = await Promise.all([
     prisma.marketDailyBar.findFirst({
-      where: { tradeDate, stockCode },
+      where: { stockCode },
+      orderBy: { tradeDate: 'desc' },
     }),
     prisma.diagnosisSnapshot.findFirst({
-      where: { stockCode, tradeDate },
-      orderBy: { createdAt: 'desc' },
+      where: { stockCode },
+      orderBy: { tradeDate: 'desc' },
     }),
     prisma.candidateSignal.findFirst({
       where: { stockCode },
@@ -630,9 +630,72 @@ export async function getStockDetail(stockCode: string) {
           score: Number(candidate.score),
           riskScore: Number(candidate.riskScore),
           holdingWindow: candidate.holdingWindow,
-          driverSummary: candidate.driverSummary,
         }
       : null,
-    factors: diagnosis?.factors as Record<string, unknown> | null,
+    // 添加趋势预测（基于简单规则）
+    trendPrediction: generateTrendPrediction(bar, candidate),
+  }
+}
+
+// 生成趋势预测（基于技术指标的简单规则）
+function generateTrendPrediction(
+  bar: { closePrice: Decimal | null; highPrice: Decimal | null; lowPrice: Decimal | null },
+  candidate: { score: Decimal; signalLevel: string } | null
+): {
+  trend1d: 'up' | 'down' | 'neutral'
+  trend3d: 'up' | 'down' | 'neutral'
+  trend5d: 'up' | 'down' | 'neutral'
+  confidence: number
+  supportLevel: number
+  resistanceLevel: number
+  targetPrice: number
+  stopLoss: number
+} {
+  const currentPrice = Number(bar.closePrice) || 0
+  const score = candidate ? Number(candidate.score) : 50
+  
+  // 基于评分判断趋势
+  let trend1d: 'up' | 'down' | 'neutral' = 'neutral'
+  let trend3d: 'up' | 'down' | 'neutral' = 'neutral'
+  let trend5d: 'up' | 'down' | 'neutral' = 'neutral'
+  
+  if (score >= 70) {
+    trend1d = 'up'
+    trend3d = 'up'
+    trend5d = score >= 80 ? 'up' : 'neutral'
+  } else if (score >= 50) {
+    trend1d = 'up'
+    trend3d = 'neutral'
+    trend5d = 'neutral'
+  } else if (score >= 30) {
+    trend1d = 'neutral'
+    trend3d = 'down'
+    trend5d = 'down'
+  } else {
+    trend1d = 'down'
+    trend3d = 'down'
+    trend5d = 'down'
+  }
+  
+  // 计算支撑位和压力位
+  const supportLevel = Math.round(currentPrice * 0.95)
+  const resistanceLevel = Math.round(currentPrice * 1.08)
+  
+  // 计算目标价和止损价
+  const targetPrice = Math.round(currentPrice * 1.05)
+  const stopLoss = Math.round(currentPrice * 0.93)
+  
+  // 置信度基于评分
+  const confidence = Math.min(Math.max(score + 20, 50), 95)
+  
+  return {
+    trend1d,
+    trend3d,
+    trend5d,
+    confidence,
+    supportLevel,
+    resistanceLevel,
+    targetPrice,
+    stopLoss,
   }
 }

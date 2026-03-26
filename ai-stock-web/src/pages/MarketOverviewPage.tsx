@@ -41,7 +41,7 @@ function MarketOverviewPage() {
             <li>🎯 关注热点板块，找到主线方向。</li>
             <li>🔍 进入候选池和诊股页，深入分析个股。</li>
           </ol>
-          <div className="note-card">💡 数据源：{source === 'api' ? '实时行情' : '本地缓存（网络异常时自动切换）'}</div>
+          <div className="note-card">💡 {source === 'api' ? '实时行情' : '本地缓存'}</div>
           {error ? <div className="note-card error-card">加载市场数据失败，请刷新页面重试。</div> : null}
         </ContentPanel>
       </section>

@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { Navigate } from 'react-router-dom'
+import { AdminDashboard } from './pages/AdminDashboard'
 import CompliancePage from './pages/CompliancePage'
 import DataJobsPage from './pages/DataJobsPage'
 import LoginPage from './pages/LoginPage'
@@ -17,8 +18,9 @@ export type AdminRouteConfig = {
 }
 
 export const adminRoutes: AdminRouteConfig[] = [
-  { path: '/', label: '首页', element: <Navigate to="/operations" replace /> },
+  { path: '/', label: '首页', element: <Navigate to="/dashboard" replace /> },
   { path: '/login', label: '登录', element: <LoginPage /> },
+  { path: '/dashboard', label: '管理首页', element: <AdminDashboard /> },
   { path: '/operations', label: '运营总览', section: 'operations', element: <OperationsDashboardPage /> },
   { path: '/operations/users', label: '用户与增长', section: 'operations', element: <UserGrowthPage /> },
   { path: '/operations/compliance', label: '合规巡检', section: 'operations', element: <CompliancePage /> },

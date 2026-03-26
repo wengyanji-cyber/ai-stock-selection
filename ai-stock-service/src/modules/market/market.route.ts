@@ -135,7 +135,6 @@ export async function registerMarketRoutes(app: FastifyInstance) {
 
   app.get('/api/v1/reviews/latest', async (request, reply) => {
     const { requireAuthSession } = await import('../auth/auth.service.js')
-    const { checkFeatureAccess } = await import('../../lib/middleware.js')
     
     const session = await requireAuthSession(request).catch(() => null)
     if (!session) {
@@ -146,17 +145,7 @@ export async function registerMarketRoutes(app: FastifyInstance) {
       }
     }
 
-    // 检查复盘权限（标准版及以上）
-    const accessCheck = await checkFeatureAccess(request, 'pushNotifications', session)
-    if (!accessCheck.allowed) {
-      return {
-        data: null,
-        error: accessCheck.message,
-        upgradeHint: accessCheck.upgradeHint,
-        meta: { source: 'mysql', version: 'v1' },
-      }
-    }
-
+    // 复盘功能对所有登录用户开放
     return {
       data: await getLatestReview(),
       meta: { source: 'mysql', version: 'v1' },

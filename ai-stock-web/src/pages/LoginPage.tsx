@@ -1,13 +1,36 @@
 import { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { loginUserAccount } from '../api/demoApi'
+import { getCurrentSession } from '../utils/session'
 
 function LoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
+  const session = getCurrentSession()
   const [form, setForm] = useState({ userCode: 'demo_user', password: 'demo123456' })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
+
+  // 如果已登录，提示用户
+  if (session) {
+    return (
+      <div className="page-stack">
+        <section className="panel-card">
+          <div className="section-kicker">已登录</div>
+          <h2>您已登录为 {session.profile.userCode}</h2>
+          <p>如需切换账号，请先退出登录。</p>
+          <div className="action-row">
+            <button className="primary-button" onClick={() => navigate('/account')}>
+              前往用户中心
+            </button>
+            <button className="secondary-button" onClick={() => navigate('/')}>
+              返回首页
+            </button>
+          </div>
+        </section>
+      </div>
+    )
+  }
 
   async function handleSubmit() {
     setIsSubmitting(true)
@@ -20,6 +43,8 @@ function LoginPage() {
       })
 
       const redirect = new URLSearchParams(location.search).get('redirect') || '/account'
+      // 触发存储事件，同步导航栏状态
+      window.dispatchEvent(new Event('storage'))
       navigate(redirect)
     } catch (submitError) {
       if (submitError instanceof Error) {
@@ -62,9 +87,6 @@ function LoginPage() {
             {isSubmitting ? '登录中...' : '登录'}
           </button>
           <div className="action-row">
-            <button className="secondary-button" type="button" onClick={() => navigate('/trial')} disabled={isSubmitting}>
-              试用登录
-            </button>
             <button className="secondary-button" type="button" onClick={() => navigate('/register')} disabled={isSubmitting}>
               注册新账号
             </button>

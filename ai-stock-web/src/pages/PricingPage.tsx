@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import ContentPanel from '../components/ContentPanel'
+import { WEB_API_BASE_URL } from '../constants/runtime'
 
 type MembershipPlan = {
   plan: string
@@ -20,7 +21,7 @@ type MembershipPlan = {
 }
 
 async function fetchPlans() {
-  const res = await fetch('http://106.52.6.176:3010/api/v1/membership/plans')
+const res = await fetch(`${WEB_API_BASE_URL}/api/v1/membership/plans`)
   const json = await res.json()
   return json.data as MembershipPlan[]
 }

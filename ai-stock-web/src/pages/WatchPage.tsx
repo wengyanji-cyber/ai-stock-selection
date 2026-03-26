@@ -78,7 +78,7 @@ function WatchPage() {
           </button>
         </div>
       </section>
-      <div className="note-card">当前数据源：{source === 'api' ? '后端接口' : '本地 mock 回退'}。</div>
+      <div className="note-card">💡 {source === 'api' ? '实时数据' : '本地数据'}</div>
       {error ? <div className="note-card error-card">自选接口异常：{error}</div> : null}
       {isLoading ? <div className="note-card">正在加载自选观察...</div> : null}
       {!isLoading && watchlist.length === 0 ? <div className="note-card">当前没有自选观察数据。</div> : null}

@@ -13,7 +13,7 @@ function App() {
             <Route
               key={route.path}
               path={route.path}
-              element={['/account', '/watch'].includes(route.path) ? <WebAuthGuard>{route.element}</WebAuthGuard> : route.element}
+              element={['/account', '/watch', '/review', '/candidates', '/diagnosis', '/trend', '/strategy'].includes(route.path) ? <WebAuthGuard>{route.element}</WebAuthGuard> : route.element}
             />
           ))}
         </Routes>

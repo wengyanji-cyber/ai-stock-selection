@@ -1,9 +1,10 @@
 import { useEffect, useState, type PropsWithChildren } from 'react'
-import { Navigate, useLocation } from 'react-router-dom'
+import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { refreshCurrentSession } from '../api/demoApi'
 import { getCurrentSession } from '../utils/session'
 
 function WebAuthGuard({ children }: PropsWithChildren) {
+  const navigate = useNavigate()
   const session = getCurrentSession()
   const location = useLocation()
   const [status, setStatus] = useState<'checking' | 'ready' | 'unauthorized'>(session ? 'checking' : 'unauthorized')
@@ -47,7 +48,29 @@ function WebAuthGuard({ children }: PropsWithChildren) {
   }
 
   if (!session || status === 'unauthorized') {
-    return <Navigate to={`/login?redirect=${encodeURIComponent(location.pathname)}`} replace state={{ from: location.pathname }} />
+    return (
+      <div className="page-stack">
+        <section className="panel-card">
+          <div className="section-kicker">需要登录</div>
+          <h2>请先登录</h2>
+          <p>该功能需要登录后才能使用。</p>
+          <div className="action-row">
+            <button 
+              className="primary-button" 
+              onClick={() => navigate(`/login?redirect=${encodeURIComponent(location.pathname)}`)}
+            >
+              立即登录
+            </button>
+            <button 
+              className="secondary-button" 
+              onClick={() => navigate('/trial')}
+            >
+              试用体验
+            </button>
+          </div>
+        </section>
+      </div>
+    )
   }
 
   return <>{children}</>

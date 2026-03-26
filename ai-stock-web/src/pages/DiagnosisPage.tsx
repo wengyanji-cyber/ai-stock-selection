@@ -39,7 +39,7 @@ function DiagnosisPage() {
             <span>搜索代码 / 名称 / 板块</span>
             <input value={keyword} onChange={(event) => setKeyword(event.target.value)} placeholder="例如：300001 / 机器人" />
           </label>
-          <div className="note-card">💡 数据源：{source === 'api' ? '实时诊断' : '本地缓存（网络异常时自动切换）'}</div>
+          <div className="note-card">💡 {source === 'api' ? '实时诊断' : '本地缓存'}</div>
           {error ? <div className="note-card error-card">加载诊断数据失败，请检查网络连接。</div> : null}
           <div className="stack-list compact-list">
             {diagnosisList.map((diagnosis) => (

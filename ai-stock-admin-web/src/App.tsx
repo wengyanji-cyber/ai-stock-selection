@@ -6,7 +6,7 @@ import { adminRoutes } from './routes'
 
 function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/admin">
       <AdminLayout>
         <Routes>
           {adminRoutes.map((route) => (

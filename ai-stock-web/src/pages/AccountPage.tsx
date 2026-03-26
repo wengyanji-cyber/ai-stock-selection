@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { getCurrentUserCode, clearCurrentSession } from '../utils/session'
+import { WEB_API_BASE_URL } from '../constants/runtime'
 
 type MembershipStats = {
   plan: string
@@ -25,7 +26,7 @@ async function fetchMembershipStats() {
   if (!token) return null
   
   try {
-    const res = await fetch('http://106.52.6.176:3010/api/v1/membership/stats', {
+const res = await fetch(`${WEB_API_BASE_URL}/api/v1/membership/stats`, {
       headers: {
         'Authorization': `Bearer ${token}`,
       },
