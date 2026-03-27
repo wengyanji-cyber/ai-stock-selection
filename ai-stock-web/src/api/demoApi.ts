@@ -172,11 +172,13 @@ export async function fetchLatestReview(): Promise<{ data: ReviewSummary; source
 
   try {
     const response = await fetch(`${WEB_API_BASE_URL}/api/v1/reviews/latest`)
-    // 复盘接口不需要登录，401 直接回退到 mock，不重定向
-    if (response.status === 401) {
+    const payload = await parsePayload<{ data: ReviewSummary | null }>(response)
+    
+    // 如果 data 为 null（未登录或其他原因），回退到 mock
+    if (!payload || payload.data === null) {
       return { data: demoData.review, source: 'mock' }
     }
-    const payload = await requireJson<{ data: ReviewSummary }>(response)
+    
     return { data: payload.data, source: 'api' }
   } catch (error) {
     // 任何错误都回退到 mock
