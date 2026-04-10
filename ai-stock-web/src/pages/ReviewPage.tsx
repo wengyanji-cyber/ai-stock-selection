@@ -17,15 +17,15 @@ function ReviewPage() {
     )
   }
 
-  // 数据为空
+  // 数据为空（不应该发生，但做安全防护）
   if (!data) {
     return (
       <div className="page-stack">
         <section className="panel-card">
           <div className="section-kicker">盘后复盘</div>
           <h2>暂无复盘数据</h2>
-          <p>当前还没有生成复盘报告，请在交易时间结束后再查看。</p>
-          {error && <div className="note-card error-card">错误信息：{error}</div>}
+          <p>当前还没有生成复盘报告。</p>
+          {error && <div className="note-card error-card">错误：{error}</div>}
         </section>
       </div>
     )
@@ -35,14 +35,14 @@ function ReviewPage() {
     <div className="page-stack">
       <PageHero
         eyebrow="盘后复盘"
-        title="今天表现如何？明日重点关注什么？"
-        description={data.summary}
+        title="复盘不是流水账，而是总结今天什么有效、明天优先看什么。"
+        description={data.summary || '今日暂无复盘摘要'}
         compact
       />
       <section className="content-grid">
         <ContentPanel kicker="候选结果">
           <div className="stack-list">
-            {data.candidateReview && data.candidateReview.length > 0 ? (
+            {data.candidateReview?.length > 0 ? (
               data.candidateReview.map((item) => (
                 <div className="info-card" key={item.name}>
                   <div className="card-head">
@@ -58,7 +58,7 @@ function ReviewPage() {
           </div>
         </ContentPanel>
         <ContentPanel kicker="风险与明日重点">
-          {data.risks && data.risks.length > 0 ? (
+          {data.risks?.length > 0 ? (
             <ul className="bullet-list">
               {data.risks.map((risk) => (
                 <li key={risk}>{risk}</li>
@@ -67,9 +67,9 @@ function ReviewPage() {
           ) : (
             <div className="note-card">暂无风险提示</div>
           )}
-          <div className="note-card primary">🎯 明日优先方向：{data.nextFocus || '暂无'}</div>
-          <div className="note-card">💡 {source === 'api' ? '实时复盘' : '本地缓存'}</div>
-          {error ? <div className="note-card error-card">加载复盘数据失败，请稍后重试。</div> : null}
+          <div className="note-card">明日优先方向：{data.nextFocus || '暂无'}</div>
+          <div className="note-card">当前数据源：{source === 'api' ? '后端接口' : '本地 mock 回退'}。</div>
+          {error ? <div className="note-card error-card">复盘接口异常：{error}</div> : null}
         </ContentPanel>
       </section>
     </div>
