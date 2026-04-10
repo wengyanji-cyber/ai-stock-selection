@@ -1,0 +1,1413 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI智能炒股助手 - 交互原型</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 414px;
+            height: 896px;
+            background: #0a0e1a;
+            border-radius: 40px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+            border: 8px solid #1e293b;
+        }
+
+        .status-bar {
+            height: 44px;
+            background: linear-gradient(90deg, #0f172a 0%, #1e293b 100%);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            color: #fff;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            padding: 20px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header .subtitle {
+            font-size: 13px;
+            opacity: 0.9;
+            font-weight: 400;
+        }
+
+        .ai-badge {
+            background: linear-gradient(90deg, #f59e0b, #ef4444);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .main-content {
+            height: calc(100% - 44px - 88px - 80px);
+            overflow-y: auto;
+            padding: 20px;
+            background: #0a0e1a;
+        }
+
+        .main-content::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .main-content::-webkit-scrollbar-thumb {
+            background: #3b82f6;
+            border-radius: 2px;
+        }
+
+        .function-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .function-card {
+            background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
+            border-radius: 20px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(59, 130, 246, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .function-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+            transform: scaleX(0);
+            transition: transform 0.3s;
+        }
+
+        .function-card:hover::before,
+        .function-card.active::before {
+            transform: scaleX(1);
+        }
+
+        .function-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px -10px rgba(59, 130, 246, 0.3);
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+
+        .function-card.active {
+            background: linear-gradient(145deg, #1e3a8a 0%, #1e40af 100%);
+            border-color: #3b82f6;
+        }
+
+        .function-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(139, 92, 246, 0.2));
+            border: 1px solid rgba(59, 130, 246, 0.2);
+        }
+
+        .function-card h3 {
+            color: #fff;
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .function-card p {
+            color: #94a3b8;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        .section-title {
+            color: #fff;
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-title::before {
+            content: '';
+            width: 4px;
+            height: 20px;
+            background: linear-gradient(180deg, #3b82f6, #8b5cf6);
+            border-radius: 2px;
+        }
+
+        .input-area {
+            background: #1e293b;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            color: #94a3b8;
+            font-size: 13px;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 14px 16px;
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 15px;
+            transition: all 0.3s;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(90deg, #3b82f6, #2563eb);
+            border: none;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(90deg, #8b5cf6, #7c3aed);
+        }
+
+        .btn-success {
+            background: linear-gradient(90deg, #10b981, #059669);
+        }
+
+        .btn-danger {
+            background: linear-gradient(90deg, #ef4444, #dc2626);
+        }
+
+        .result-panel {
+            background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
+            border-radius: 20px;
+            padding: 20px;
+            margin-top: 20px;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            display: none;
+            animation: slideUp 0.4s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-panel.show {
+            display: block;
+        }
+
+        .stock-card {
+            background: #0f172a;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border-left: 4px solid #3b82f6;
+        }
+
+        .stock-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .stock-name {
+            color: #fff;
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .stock-code {
+            color: #64748b;
+            font-size: 12px;
+            margin-left: 8px;
+        }
+
+        .stock-price {
+            color: #ef4444;
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .stock-price.up {
+            color: #ef4444;
+        }
+
+        .stock-price.down {
+            color: #10b981;
+        }
+
+        .stock-info {
+            display: flex;
+            gap: 15px;
+            font-size: 12px;
+            color: #94a3b8;
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 4px 10px;
+            background: rgba(59, 130, 246, 0.2);
+            color: #60a5fa;
+            border-radius: 20px;
+            font-size: 11px;
+            margin-right: 6px;
+            margin-bottom: 6px;
+        }
+
+        .tag.success {
+            background: rgba(16, 185, 129, 0.2);
+            color: #34d399;
+        }
+
+        .tag.warning {
+            background: rgba(245, 158, 11, 0.2);
+            color: #fbbf24;
+        }
+
+        .tag.danger {
+            background: rgba(239, 68, 68, 0.2);
+            color: #f87171;
+        }
+
+        .chart-placeholder {
+            height: 200px;
+            background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #64748b;
+            font-size: 14px;
+            margin: 15px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .chart-placeholder::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #3b82f6, transparent);
+            top: 50%;
+            animation: scan 2s linear infinite;
+        }
+
+        @keyframes scan {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .analysis-text {
+            color: #cbd5e1;
+            font-size: 14px;
+            line-height: 1.8;
+            padding: 15px;
+            background: #0f172a;
+            border-radius: 10px;
+            margin-top: 10px;
+        }
+
+        .toggle-group {
+            display: flex;
+            background: #0f172a;
+            border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 20px;
+        }
+
+        .toggle-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            background: transparent;
+            color: #64748b;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        .toggle-btn.active {
+            background: linear-gradient(90deg, #3b82f6, #2563eb);
+            color: #fff;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-top: 15px;
+        }
+
+        .stat-card {
+            background: #0f172a;
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #3b82f6;
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        .bottom-nav {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 80px;
+            background: linear-gradient(180deg, transparent 0%, #0a0e1a 20%);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 0 20px;
+            border-top: 1px solid rgba(59, 130, 246, 0.1);
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            color: #64748b;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.3s;
+            padding: 8px 16px;
+            border-radius: 12px;
+        }
+
+        .nav-item:hover,
+        .nav-item.active {
+            color: #3b82f6;
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        .nav-icon {
+            font-size: 22px;
+        }
+
+        .back-btn {
+            background: transparent;
+            border: 1px solid #3b82f6;
+            color: #3b82f6;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-bottom: 15px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s;
+        }
+
+        .back-btn:hover {
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+            color: #64748b;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #1e293b;
+            border-top-color: #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .recommendation-list {
+            margin-top: 15px;
+        }
+
+        .recommendation-item {
+            background: #0f172a;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border-left: 4px solid #10b981;
+        }
+
+        .recommendation-item h4 {
+            color: #fff;
+            font-size: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .recommendation-item ol {
+            color: #94a3b8;
+            font-size: 13px;
+            padding-left: 18px;
+            line-height: 1.8;
+        }
+
+        .recommendation-item li {
+            margin-bottom: 4px;
+        }
+
+        .alert-card {
+            background: #0f172a;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-left: 4px solid #f59e0b;
+        }
+
+        .alert-card.profit {
+            border-left-color: #ef4444;
+        }
+
+        .alert-card.loss {
+            border-left-color: #10b981;
+        }
+
+        .alert-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            background: rgba(245, 158, 11, 0.2);
+        }
+
+        .alert-card.profit .alert-icon {
+            background: rgba(239, 68, 68, 0.2);
+        }
+
+        .alert-card.loss .alert-icon {
+            background: rgba(16, 185, 129, 0.2);
+        }
+
+        .alert-content h4 {
+            color: #fff;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .alert-content p {
+            color: #64748b;
+            font-size: 12px;
+        }
+
+        .accuracy-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .accuracy-badge.high {
+            background: rgba(16, 185, 129, 0.2);
+            color: #34d399;
+        }
+
+        .accuracy-badge.medium {
+            background: rgba(245, 158, 11, 0.2);
+            color: #fbbf24;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 13px;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #1e293b;
+        }
+
+        .data-table th {
+            color: #64748b;
+            font-weight: 600;
+            background: #0f172a;
+        }
+
+        .data-table td {
+            color: #cbd5e1;
+        }
+
+        .data-table tr:hover td {
+            background: rgba(59, 130, 246, 0.05);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .page {
+            display: none;
+            height: 100%;
+            overflow-y: auto;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        .notification-toast {
+            position: fixed;
+            top: 60px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            background: linear-gradient(90deg, #10b981, #059669);
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 600;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            z-index: 1000;
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .notification-toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #64748b;
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="status-bar">
+            <span>9:41</span>
+            <span>AI炒股助手</span>
+            <span>📶 5G 🔋</span>
+        </div>
+
+        <!-- 首页 -->
+        <div id="homePage" class="page active">
+            <div class="header">
+                <h1><span class="ai-badge">AI</span>智能炒股助手</h1>
+                <p class="subtitle">大数据驱动 · 智能决策 · 实时监控</p>
+            </div>
+
+            <div class="main-content">
+                <div class="section-title">核心功能</div>
+
+                <div class="function-grid">
+                    <div class="function-card" onclick="showPage('diagnosis')">
+                        <div class="function-icon">🔍</div>
+                        <h3>AI诊股</h3>
+                        <p>智能分析个股基本面与技术面</p>
+                    </div>
+
+                    <div class="function-card" onclick="showPage('trend')">
+                        <div class="function-icon">📈</div>
+                        <h3>AI趋势预测</h3>
+                        <p>大盘走势与板块轮动分析</p>
+                    </div>
+
+                    <div class="function-card" onclick="showPage('strategy')">
+                        <div class="function-icon">🎯</div>
+                        <h3>AI策略荐股</h3>
+                        <p>精选潜力股与投资策略</p>
+                    </div>
+
+                    <div class="function-card" onclick="showPage('monitor')">
+                        <div class="function-icon">🔔</div>
+                        <h3>智能盯盘预警</h3>
+                        <p>止盈止损自动提醒</p>
+                    </div>
+
+                    <div class="function-card" onclick="showPage('accuracy')" style="grid-column: span 2;">
+                        <div class="function-icon">📊</div>
+                        <h3>盈亏准确率</h3>
+                        <p>策略回测与胜率统计，验证AI预测效果</p>
+                    </div>
+                </div>
+
+                <div class="section-title">市场概览</div>
+                <div class="stock-card">
+                    <div class="stock-header">
+                        <div>
+                            <span class="stock-name">上证指数</span>
+                            <span class="stock-code">000001</span>
+                        </div>
+                        <span class="stock-price up">3,085.24 ▲</span>
+                    </div>
+                    <div class="stock-info">
+                        <span>成交额: 3,245亿</span>
+                        <span>涨跌: +1.24%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI诊股页 -->
+        <div id="diagnosisPage" class="page">
+            <div class="header">
+                <h1>🔍 AI诊股</h1>
+                <p class="subtitle">输入股票代码，获取专业分析报告</p>
+            </div>
+            <div class="main-content">
+                <button class="back-btn" onclick="showPage('home')">← 返回首页</button>
+
+                <div class="input-area">
+                    <div class="input-group">
+                        <label>股票代码或名称</label>
+                        <input type="text" class="input-field" id="stockInput" placeholder="例如：000001 或 平安银行">
+                    </div>
+                    <button class="btn-primary" onclick="analyzeStock()">
+                        <span>🚀</span> 开始分析
+                    </button>
+                </div>
+
+                <div class="loading" id="diagnosisLoading">
+                    <div class="spinner"></div>
+                    <p>AI正在深度分析中...</p>
+                </div>
+
+                <div class="result-panel" id="diagnosisResult">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <h3 style="color: #fff; font-size: 18px;">平安银行 000001</h3>
+                        <span class="accuracy-badge high">强烈推荐</span>
+                    </div>
+
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-value" style="color: #ef4444;">12.58</div>
+                            <div class="stat-label">当前价格</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" style="color: #10b981;">+2.35%</div>
+                            <div class="stat-label">今日涨跌</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">85.6</div>
+                            <div class="stat-label">综合评分</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" style="color: #f59e0b;">B+</div>
+                            <div class="stat-label">技术评级</div>
+                        </div>
+                    </div>
+
+                    <div class="analysis-text">
+                        <strong style="color: #3b82f6;">📊 技术面分析：</strong><br>
+                        该股目前处于上升通道，MACD金叉形成，成交量温和放大。短期支撑位12.20元，压力位13.00元。KDJ指标显示超买区域，建议关注回调机会。<br><br>
+
+                        <strong style="color: #10b981;">💼 基本面分析：</strong><br>
+                        2025年Q1营收同比增长15.3%，净利润增长18.7%。不良贷款率持续下降，资产质量改善明显。股息率4.2%，具备长期投资价值。<br><br>
+
+                        <strong style="color: #f59e0b;">⚠️ 风险提示：</strong><br>
+                        银行业整体受宏观经济影响较大，需关注利率政策变化及信贷风险。
+                    </div>
+
+                    <div style="margin-top: 15px;">
+                        <span class="tag">银行股</span>
+                        <span class="tag success">高分红</span>
+                        <span class="tag warning">机构重仓</span>
+                        <span class="tag">低估值</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI趋势预测页 -->
+        <div id="trendPage" class="page">
+            <div class="header">
+                <h1>📈 AI趋势预测</h1>
+                <p class="subtitle">智能预测大盘与板块走势</p>
+            </div>
+            <div class="main-content">
+                <button class="back-btn" onclick="showPage('home')">← 返回首页</button>
+
+                <div class="input-area">
+                    <div class="input-group">
+                        <label>选择行业板块</label>
+                        <select class="input-field" id="sectorSelect">
+                            <option value="">请选择板块</option>
+                            <option value="tech">科技板块</option>
+                            <option value="finance">金融板块</option>
+                            <option value="medical">医药板块</option>
+                            <option value="new">新能源板块</option>
+                            <option value="consumer">消费板块</option>
+                            <option value="index">上证指数</option>
+                        </select>
+                    </div>
+                    <button class="btn-primary btn-secondary" onclick="predictTrend()">
+                        <span>🔮</span> 生成预测报告
+                    </button>
+                </div>
+
+                <div class="loading" id="trendLoading">
+                    <div class="spinner"></div>
+                    <p>AI正在分析市场数据...</p>
+                </div>
+
+                <div class="result-panel" id="trendResult">
+                    <h3 style="color: #fff; margin-bottom: 15px;">科技板块趋势预测</h3>
+
+                    <div class="chart-placeholder">
+                        [K线图表区域]<br>
+                        模拟大盘K线走势图
+                    </div>
+
+                    <div class="toggle-group">
+                        <button class="toggle-btn active" onclick="switchTrendView(this, 'short')">短期(1-5天)</button>
+                        <button class="toggle-btn" onclick="switchTrendView(this, 'mid')">中期(1-3月)</button>
+                    </div>
+
+                    <div class="analysis-text">
+                        <strong style="color: #3b82f6;">📈 趋势判断：</strong><br>
+                        AI模型预测科技板块未来5个交易日内大概率维持震荡上行趋势。基于量价分析，目前处于第三浪上升阶段，目标涨幅5-8%。<br><br>
+
+                        <strong style="color: #10b981;">💡 操作建议：</strong><br>
+                        建议逢低布局半导体、人工智能相关龙头个股。关注成交量变化，若放量突破前高可加仓，缩量回调至10日线附近为买点。<br><br>
+
+                        <strong style="color: #8b5cf6;">📊 关键点位：</strong><br>
+                        支撑位：3,250点 | 压力位：3,450点 | 强阻力：3,600点
+                    </div>
+
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-value" style="color: #10b981;">78%</div>
+                            <div class="stat-label">上涨概率</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">+5.2%</div>
+                            <div class="stat-label">预期涨幅</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI策略荐股页 -->
+        <div id="strategyPage" class="page">
+            <div class="header">
+                <h1>🎯 AI策略荐股</h1>
+                <p class="subtitle">智能筛选优质标的与投资策略</p>
+            </div>
+            <div class="main-content">
+                <button class="back-btn" onclick="showPage('home')">← 返回首页</button>
+
+                <div class="input-area">
+                    <div class="input-group">
+                        <label>选择行业板块</label>
+                        <select class="input-field" id="strategySector">
+                            <option value="">请选择板块</option>
+                            <option value="tech">科技板块</option>
+                            <option value="finance">金融板块</option>
+                            <option value="medical">医药板块</option>
+                            <option value="new">新能源板块</option>
+                            <option value="consumer">消费板块</option>
+                        </select>
+                    </div>
+                    <button class="btn-primary btn-success" onclick="generateStrategy()">
+                        <span>🎯</span> 生成荐股策略
+                    </button>
+                </div>
+
+                <div class="loading" id="strategyLoading">
+                    <div class="spinner"></div>
+                    <p>AI正在筛选优质股票...</p>
+                </div>
+
+                <div class="result-panel" id="strategyResult">
+                    <h3 style="color: #fff; margin-bottom: 15px;">科技板块精选策略</h3>
+
+                    <div class="recommendation-list">
+                        <div class="recommendation-item">
+                            <h4><span class="accuracy-badge high">TOP 1</span> 中芯国际 688981</h4>
+                            <ol>
+                                <li>国产替代核心标的，技术突破预期强烈，14nm产能爬坡超预期</li>
+                                <li>Q1业绩同比增长45%，毛利率提升至28%，盈利能力持续改善</li>
+                                <li>北向资金连续5日净流入，机构调研频次增加，筹码结构优化</li>
+                            </ol>
+                            <div style="margin-top: 10px;">
+                                <span class="tag success">买入</span>
+                                <span class="tag">目标价: 68元</span>
+                                <span class="tag warning">止损: 52元</span>
+                            </div>
+                        </div>
+
+                        <div class="recommendation-item">
+                            <h4><span class="accuracy-badge medium">TOP 2</span> 宁德时代 300750</h4>
+                            <ol>
+                                <li>全球动力电池龙头地位稳固，市占率提升至37%，规模效应显著</li>
+                                <li>储能业务高速增长，新签订单超200亿，第二增长曲线明确</li>
+                                <li>技术路线领先，钠离子电池量产在即，成本优势将进一步扩大</li>
+                            </ol>
+                            <div style="margin-top: 10px;">
+                                <span class="tag success">买入</span>
+                                <span class="tag">目标价: 220元</span>
+                                <span class="tag warning">止损: 185元</span>
+                            </div>
+                        </div>
+
+                        <div class="recommendation-item">
+                            <h4><span class="accuracy-badge medium">TOP 3</span> 科大讯飞 002230</h4>
+                            <ol>
+                                <li>AI大模型商业化落地加速，教育、医疗场景订单饱满</li>
+                                <li>星火认知大模型性能对标GPT-4，API调用量月增300%</li>
+                                <li>估值处于历史低位，PEG<1，具备较高安全边际</li>
+                            </ol>
+                            <div style="margin-top: 10px;">
+                                <span class="tag success">买入</span>
+                                <span class="tag">目标价: 58元</span>
+                                <span class="tag warning">止损: 45元</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 智能盯盘预警页 -->
+        <div id="monitorPage" class="page">
+            <div class="header">
+                <h1>🔔 智能盯盘预警</h1>
+                <p class="subtitle">自动监控止盈止损，实时推送提醒</p>
+            </div>
+            <div class="main-content">
+                <button class="back-btn" onclick="showPage('home')">← 返回首页</button>
+
+                <div class="toggle-group">
+                    <button class="toggle-btn active" onclick="switchMonitorTab(this, 'profit')">止盈预警</button>
+                    <button class="toggle-btn" onclick="switchMonitorTab(this, 'loss')">止损预警</button>
+                </div>
+
+                <div id="profitPanel">
+                    <div class="section-title">已达到止盈线股票</div>
+                    <div class="alert-card profit">
+                        <div class="alert-icon">🎯</div>
+                        <div class="alert-content">
+                            <h4>比亚迪 002594</h4>
+                            <p>当前盈利: <strong style="color: #ef4444;">+18.5%</strong> | 目标: +15%</p>
+                        </div>
+                    </div>
+                    <div class="alert-card profit">
+                        <div class="alert-icon">🎯</div>
+                        <div class="alert-content">
+                            <h4>贵州茅台 600519</h4>
+                            <p>当前盈利: <strong style="color: #ef4444;">+12.3%</strong> | 目标: +10%</p>
+                        </div>
+                    </div>
+
+                    <div class="input-area" style="margin-top: 20px;">
+                        <div class="input-group">
+                            <label>设置最低盈利点标准 (%)</label>
+                            <input type="number" class="input-field" value="10" placeholder="例如：10">
+                        </div>
+                        <button class="btn-primary" onclick="showToast('止盈标准已更新')">
+                            <span>💾</span> 保存设置
+                        </button>
+                    </div>
+                </div>
+
+                <div id="lossPanel" class="hidden">
+                    <div class="section-title">下跌风险预警</div>
+                    <div class="alert-card loss">
+                        <div class="alert-icon">⚠️</div>
+                        <div class="alert-content">
+                            <h4>中国平安 601318</h4>
+                            <p>当前亏损: <strong style="color: #10b981;">-8.2%</strong> | 止损线: -10%</p>
+                        </div>
+                    </div>
+                    <div class="alert-card loss">
+                        <div class="alert-icon">⚠️</div>
+                        <div class="alert-content">
+                            <h4>招商银行 600036</h4>
+                            <p>当前亏损: <strong style="color: #10b981;">-5.6%</strong> | 止损线: -8%</p>
+                        </div>
+                    </div>
+
+                    <div class="analysis-text" style="margin-top: 15px;">
+                        <strong style="color: #3b82f6;">📱 通知方式：</strong><br>
+                        系统将通过以下方式实时推送预警：<br>
+                        • 短信通知 (已开启)<br>
+                        • 钉钉机器人 (已绑定)<br>
+                        • App推送 (已开启)
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 盈亏准确率页 -->
+        <div id="accuracyPage" class="page">
+            <div class="header">
+                <h1>📊 盈亏准确率</h1>
+                <p class="subtitle">策略回测与胜率统计验证</p>
+            </div>
+            <div class="main-content">
+                <button class="back-btn" onclick="showPage('home')">← 返回首页</button>
+
+                <div class="toggle-group">
+                    <button class="toggle-btn active" onclick="switchAccuracyTab(this, 'win')">赢准确率</button>
+                    <button class="toggle-btn" onclick="switchAccuracyTab(this, 'stop')">止损准确率</button>
+                </div>
+
+                <div id="winAccuracyPanel">
+                    <div class="toggle-group" style="margin-top: 15px;">
+                        <button class="toggle-btn active" onclick="switchWinPeriod(this, 'daily')">每天</button>
+                        <button class="toggle-btn" onclick="switchWinPeriod(this, 'five')">5天</button>
+                    </div>
+
+                    <div id="winDailyPanel">
+                        <div class="stats-grid" style="margin-top: 20px;">
+                            <div class="stat-card">
+                                <div class="stat-value" style="color: #10b981;">82.4%</div>
+                                <div class="stat-label">总赢准确率</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">156</div>
+                                <div class="stat-label">统计股票数</div>
+                            </div>
+                        </div>
+
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>股票名称</th>
+                                    <th>买入价</th>
+                                    <th>收盘价</th>
+                                    <th>盈亏</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>比亚迪</td>
+                                    <td>245.00</td>
+                                    <td style="color: #ef4444;">268.50</td>
+                                    <td style="color: #ef4444;">+9.6%</td>
+                                </tr>
+                                <tr>
+                                    <td>宁德时代</td>
+                                    <td>198.00</td>
+                                    <td style="color: #ef4444;">210.50</td>
+                                    <td style="color: #ef4444;">+6.3%</td>
+                                </tr>
+                                <tr>
+                                    <td>中芯国际</td>
+                                    <td>52.00</td>
+                                    <td style="color: #10b981;">48.50</td>
+                                    <td style="color: #10b981;">-6.7%</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div id="winFivePanel" class="hidden">
+                        <div class="stats-grid" style="margin-top: 20px;">
+                            <div class="stat-card">
+                                <div class="stat-value" style="color: #10b981;">76.8%</div>
+                                <div class="stat-label">5天赢准确率</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">142</div>
+                                <div class="stat-label">统计股票数</div>
+                            </div>
+                        </div>
+
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>股票名称</th>
+                                    <th>买入价</th>
+                                    <th>第5天收盘价</th>
+                                    <th>盈亏</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>贵州茅台</td>
+                                    <td>1680.00</td>
+                                    <td style="color: #ef4444;">1825.00</td>
+                                    <td style="color: #ef4444;">+8.6%</td>
+                                </tr>
+                                <tr>
+                                    <td>五粮液</td>
+                                    <td>145.00</td>
+                                    <td style="color: #ef4444;">158.50</td>
+                                    <td style="color: #ef4444;">+9.3%</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <div class="analysis-text" style="margin-top: 15px; font-size: 12px;">
+                            <strong style="color: #64748b;">注：超过5天的股票不再统计</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="stopAccuracyPanel" class="hidden">
+                    <div class="toggle-group" style="margin-top: 15px;">
+                        <button class="toggle-btn active" onclick="switchStopPeriod(this, 'daily')">每天</button>
+                        <button class="toggle-btn" onclick="switchStopPeriod(this, 'five')">5天</button>
+                    </div>
+
+                    <div id="stopDailyPanel">
+                        <div class="stats-grid" style="margin-top: 20px;">
+                            <div class="stat-card">
+                                <div class="stat-value" style="color: #10b981;">88.5%</div>
+                                <div class="stat-label">止损准确率</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">89/98</div>
+                                <div class="stat-label">成功/总数</div>
+                            </div>
+                        </div>
+
+                        <div class="analysis-text">
+                            <strong style="color: #3b82f6;">📊 统计详情：</strong><br>
+                            • 预警成功止损线股票：<strong style="color: #10b981;">89个</strong><br>
+                            • 超过止损线失败股票：<strong style="color: #ef4444;">9个</strong><br>
+                            • 平均止损幅度：<strong>-7.2%</strong><br>
+                            • 避免损失总额：<strong>¥128,500</strong>
+                        </div>
+                    </div>
+
+                    <div id="stopFivePanel" class="hidden">
+                        <div class="stats-grid" style="margin-top: 20px;">
+                            <div class="stat-card">
+                                <div class="stat-value" style="color: #10b981;">85.2%</div>
+                                <div class="stat-label">5天止损准确率</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">75/88</div>
+                                <div class="stat-label">成功/总数</div>
+                            </div>
+                        </div>
+
+                        <div class="analysis-text">
+                            <strong style="color: #3b82f6;">📊 5天统计详情：</strong><br>
+                            • 预警成功止损线股票：<strong style="color: #10b981;">75个</strong><br>
+                            • 超过止损线失败股票：<strong style="color: #ef4444;">13个</strong><br>
+                            • 系统平均提前预警时间：<strong>1.8天</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bottom-nav">
+            <div class="nav-item active" onclick="showPage('home')">
+                <span class="nav-icon">🏠</span>
+                <span>首页</span>
+            </div>
+            <div class="nav-item" onclick="showPage('diagnosis')">
+                <span class="nav-icon">🔍</span>
+                <span>诊股</span>
+            </div>
+            <div class="nav-item" onclick="showPage('strategy')">
+                <span class="nav-icon">🎯</span>
+                <span>荐股</span>
+            </div>
+            <div class="nav-item" onclick="showPage('monitor')">
+                <span class="nav-icon">🔔</span>
+                <span>预警</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="notification-toast" id="toast">
+        <span>✓</span>
+        <span id="toastMsg">操作成功</span>
+    </div>
+
+    <script>
+        function showPage(pageName) {
+            // 隐藏所有页面
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+
+            // 显示目标页面
+            const pageMap = {
+                'home': 'homePage',
+                'diagnosis': 'diagnosisPage',
+                'trend': 'trendPage',
+                'strategy': 'strategyPage',
+                'monitor': 'monitorPage',
+                'accuracy': 'accuracyPage'
+            };
+
+            document.getElementById(pageMap[pageName]).classList.add('active');
+
+            // 更新底部导航状态
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+
+            // 更新对应导航项
+            const navIndex = ['home', 'diagnosis', 'strategy', 'monitor'].indexOf(pageName);
+            if (navIndex !== -1) {
+                document.querySelectorAll('.nav-item')[navIndex].classList.add('active');
+            }
+        }
+
+        function analyzeStock() {
+            const input = document.getElementById('stockInput').value;
+            if (!input) {
+                showToast('请输入股票代码或名称');
+                return;
+            }
+
+            document.getElementById('diagnosisLoading').classList.add('show');
+            document.getElementById('diagnosisResult').classList.remove('show');
+
+            setTimeout(() => {
+                document.getElementById('diagnosisLoading').classList.remove('show');
+                document.getElementById('diagnosisResult').classList.add('show');
+                showToast('分析完成');
+            }, 1500);
+        }
+
+        function predictTrend() {
+            const sector = document.getElementById('sectorSelect').value;
+            if (!sector) {
+                showToast('请选择行业板块');
+                return;
+            }
+
+            document.getElementById('trendLoading').classList.add('show');
+            document.getElementById('trendResult').classList.remove('show');
+
+            setTimeout(() => {
+                document.getElementById('trendLoading').classList.remove('show');
+                document.getElementById('trendResult').classList.add('show');
+                showToast('预测报告生成完毕');
+            }, 1800);
+        }
+
+        function generateStrategy() {
+            const sector = document.getElementById('strategySector').value;
+            if (!sector) {
+                showToast('请选择行业板块');
+                return;
+            }
+
+            document.getElementById('strategyLoading').classList.add('show');
+            document.getElementById('strategyResult').classList.remove('show');
+
+            setTimeout(() => {
+                document.getElementById('strategyLoading').classList.remove('show');
+                document.getElementById('strategyResult').classList.add('show');
+                showToast('荐股策略已生成');
+            }, 2000);
+        }
+
+        function switchMonitorTab(btn, type) {
+            document.querySelectorAll('#monitorPage .toggle-group .toggle-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            if (type === 'profit') {
+                document.getElementById('profitPanel').classList.remove('hidden');
+                document.getElementById('lossPanel').classList.add('hidden');
+            } else {
+                document.getElementById('profitPanel').classList.add('hidden');
+                document.getElementById('lossPanel').classList.remove('hidden');
+            }
+        }
+
+        function switchAccuracyTab(btn, type) {
+            document.querySelectorAll('#accuracyPage > .main-content > .toggle-group .toggle-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            if (type === 'win') {
+                document.getElementById('winAccuracyPanel').classList.remove('hidden');
+                document.getElementById('stopAccuracyPanel').classList.add('hidden');
+            } else {
+                document.getElementById('winAccuracyPanel').classList.add('hidden');
+                document.getElementById('stopAccuracyPanel').classList.remove('hidden');
+            }
+        }
+
+        function switchWinPeriod(btn, period) {
+            const parent = btn.closest('.toggle-group');
+            parent.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            if (period === 'daily') {
+                document.getElementById('winDailyPanel').classList.remove('hidden');
+                document.getElementById('winFivePanel').classList.add('hidden');
+            } else {
+                document.getElementById('winDailyPanel').classList.add('hidden');
+                document.getElementById('winFivePanel').classList.remove('hidden');
+            }
+        }
+
+        function switchStopPeriod(btn, period) {
+            const parent = btn.closest('.toggle-group');
+            parent.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            if (period === 'daily') {
+                document.getElementById('stopDailyPanel').classList.remove('hidden');
+                document.getElementById('stopFivePanel').classList.add('hidden');
+            } else {
+                document.getElementById('stopDailyPanel').classList.add('hidden');
+                document.getElementById('stopFivePanel').classList.remove('hidden');
+            }
+        }
+
+        function switchTrendView(btn, view) {
+            btn.parentElement.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            showToast(view === 'short' ? '已切换至短期预测' : '已切换至中期预测');
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMsg').textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2500);
+        }
+    </script>
+</body>
+</html>
